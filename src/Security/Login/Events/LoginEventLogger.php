@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\Events;
 
+use VictorWitkamp\OpenWPSecurity\Core\Location\GeoIpLookup;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Configuration\Settings;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Http\RequestContext;
-use VictorWitkamp\OpenWPSecurity\LoginProtection\Location\GeoIpLookup;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Logging\CredentialFormatter;
 
 if ( ! defined( 'ABSPATH' ) ) {

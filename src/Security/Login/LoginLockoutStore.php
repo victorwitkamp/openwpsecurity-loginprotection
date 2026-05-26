@@ -9,12 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class LoginLockoutStore {
-	private const ACTIVE_LOCKOUTS_OPTION_NAME              = 'openwpsecurity_loginprotection_active_lockouts';
-	private const LOCKOUT_COUNTS_OPTION_NAME               = 'openwpsecurity_loginprotection_lockout_counts';
-	private const LEGACY_LOGIN_ACTIVE_LOCKOUTS_OPTION_NAME = 'vw_login_protection_2026_active_lockouts';
-	private const LEGACY_LOGIN_LOCKOUT_COUNTS_OPTION_NAME  = 'vw_login_protection_2026_lockout_counts';
-	private const LEGACY_ACTIVE_LOCKOUTS_OPTION_NAME       = 'vw_firewall_2026_active_lockouts';
-	private const LEGACY_LOCKOUT_COUNTS_OPTION_NAME        = 'vw_firewall_2026_lockout_counts';
+	private const ACTIVE_LOCKOUTS_OPTION_NAME = 'openwpsecurity_loginprotection_active_lockouts';
+	private const LOCKOUT_COUNTS_OPTION_NAME  = 'openwpsecurity_loginprotection_lockout_counts';
 
 	public function ensure_storage(): void {
 		$this->ensure_active_lockouts_option();
@@ -83,27 +79,13 @@ final class LoginLockoutStore {
 
 	private function ensure_active_lockouts_option(): void {
 		if ( get_option( self::ACTIVE_LOCKOUTS_OPTION_NAME, null ) === null ) {
-			$legacy_lockouts = get_option( self::LEGACY_LOGIN_ACTIVE_LOCKOUTS_OPTION_NAME, null );
-
-			if ( ! is_array( $legacy_lockouts ) ) {
-				$legacy_lockouts = get_option( self::LEGACY_ACTIVE_LOCKOUTS_OPTION_NAME, null );
-			}
-
-			$seed = is_array( $legacy_lockouts ) ? $legacy_lockouts : array();
-			add_option( self::ACTIVE_LOCKOUTS_OPTION_NAME, $seed, '', false );
+			add_option( self::ACTIVE_LOCKOUTS_OPTION_NAME, array(), '', false );
 		}
 	}
 
 	private function ensure_lockout_counts_option(): void {
 		if ( get_option( self::LOCKOUT_COUNTS_OPTION_NAME, null ) === null ) {
-			$legacy_counts = get_option( self::LEGACY_LOGIN_LOCKOUT_COUNTS_OPTION_NAME, null );
-
-			if ( ! is_array( $legacy_counts ) ) {
-				$legacy_counts = get_option( self::LEGACY_LOCKOUT_COUNTS_OPTION_NAME, null );
-			}
-
-			$seed = is_array( $legacy_counts ) ? $legacy_counts : array();
-			add_option( self::LOCKOUT_COUNTS_OPTION_NAME, $seed, '', false );
+			add_option( self::LOCKOUT_COUNTS_OPTION_NAME, array(), '', false );
 		}
 	}
 

@@ -8,7 +8,6 @@ use VictorWitkamp\OpenWPSecurity\LoginProtection\Admin\Navigation\AdminMenu;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Configuration\Settings;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Logging\EventRetention;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Ban\PermanentBanStore;
-use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\Events\LoginEventMigration;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\Events\LoginEventSchema;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\FailedLoginStreakStore;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\LoginAttemptGuard;
@@ -21,7 +20,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Plugin {
 	private Settings $settings;
 	private LoginEventSchema $login_event_schema;
-	private LoginEventMigration $login_event_migration;
 	private EventRetention $event_retention;
 	private FailedLoginStreakStore $failed_login_streak_store;
 	private LoginLockoutStore $lockout_store;
@@ -33,7 +31,6 @@ final class Plugin {
 	public function __construct(
 		Settings $settings,
 		LoginEventSchema $login_event_schema,
-		LoginEventMigration $login_event_migration,
 		EventRetention $event_retention,
 		FailedLoginStreakStore $failed_login_streak_store,
 		LoginLockoutStore $lockout_store,
@@ -43,7 +40,6 @@ final class Plugin {
 	) {
 		$this->settings                  = $settings;
 		$this->login_event_schema        = $login_event_schema;
-		$this->login_event_migration     = $login_event_migration;
 		$this->event_retention           = $event_retention;
 		$this->failed_login_streak_store = $failed_login_streak_store;
 		$this->lockout_store             = $lockout_store;
@@ -83,6 +79,5 @@ final class Plugin {
 		$this->lockout_store->ensure_storage();
 		$this->ban_store->ensure_storage();
 		$this->login_event_schema->maybe_upgrade_schema();
-		$this->login_event_migration->maybe_migrate();
 	}
 }

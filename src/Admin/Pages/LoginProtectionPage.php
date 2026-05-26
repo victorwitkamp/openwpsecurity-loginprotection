@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace VictorWitkamp\OpenWPSecurity\LoginProtection\Admin\Pages;
 
-use VictorWitkamp\OpenWPSecurity\LoginProtection\Admin\Presentation\CountryDistributionPanel;
+use VictorWitkamp\OpenWPSecurity\Core\Admin\Presentation\CountryDistributionPanel;
+use VictorWitkamp\OpenWPSecurity\Core\Admin\Reporting\ReportPeriod;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Admin\Reporting\EventReportFormatter;
-use VictorWitkamp\OpenWPSecurity\LoginProtection\Admin\Reporting\ReportPeriod;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Admin\Requests\LoginActivityFilterInput;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Configuration\Settings;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\LoginLockoutStore;

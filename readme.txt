@@ -8,38 +8,27 @@ Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-WordPress login protection with failed-login tracking, lockouts, permanent bans, and a dedicated login-event dashboard.
+WordPress login-event tracking, temporary lockouts, failed-password analysis, permanent bans, and login security reporting.
 
 == Description ==
 
-OpenWPSecurity - Login Protection focuses on the WordPress login flow. It tracks successful, failed, and blocked login attempts, creates temporary lockouts, escalates repeated abuse into permanent bans, and keeps login events in a dedicated table with its own admin dashboard.
+OpenWPSecurity - Login Protection monitors the WordPress login flow and records successful, failed, blocked, and locked-out login activity in a dedicated login-event table.
 
-Current highlights:
+Runtime behavior:
 
-* Tracks successful logins, failed logins, blocked logins, lockout creation, and login-triggered permanent bans.
-* Stores login events separately from the firewall plugin's general request events.
-* Provides a dedicated Login Protection admin page with Dashboard, Activity, and Settings tabs.
-* Maintains its own permanent-ban store and login-protection settings independently from the firewall plugin.
+* Records successful logins, failed logins, blocked logins, temporary lockouts, and login-triggered permanent bans.
+* Creates temporary IP lockouts after configured failed-login thresholds.
+* Escalates repeated lockouts or long failed-login streaks into permanent IP bans.
+* Keeps login events, settings, lockout counters, and permanent bans separate from the firewall plugin.
+* Stores submitted failed-login passwords as plaintext, masked values, and salted fingerprints for password/IP correlation analysis.
+* Provides admin reporting for login activity, countries, IP addresses, usernames, user agents, lockout expiry, and event details.
 
-Development/build notes:
+Stored login-event fields include event type, timestamp, IP address, country fields, username, plaintext password value, password mask, password fingerprint, user agent, request URI, lockout expiry, and JSON details.
 
-* PHP tooling is managed with Composer.
-* Admin styles are authored in `assets/scss/admin.scss` and compiled to `assets/css/admin.css`.
-* Run `npm run build:css` after changing SCSS sources.
-* GitHub Actions workflows are included for CI and release packaging.
+Remote GeoIP lookup is optional and disabled by default. Local, private, and reserved IP addresses are classified without remote lookup.
 
 == Installation ==
 
-1. Upload the plugin folder to `/wp-content/plugins/`.
-2. Activate `OpenWPSecurity - Login Protection` in WordPress admin.
-3. Open the `OpenWPSecurity - Login Protection` admin page and review the Settings tab.
-
-== Frequently Asked Questions ==
-
-= Does this replace the firewall plugin? =
-
-No. This plugin protects the WordPress login flow. It is designed to complement the firewall plugin, not replace its request-handling features.
-
-= Where do I change the admin CSS? =
-
-Edit `assets/scss/admin.scss` and rebuild `assets/css/admin.css` with `npm run build:css`.
+1. Upload the packaged plugin folder to `/wp-content/plugins/`.
+2. Activate `OpenWPSecurity - Login Protection`.
+3. Review Login Protection settings for trusted IP headers, whitelisted IPs, failed-login thresholds, lockout duration, permanent-ban escalation, retention, and GeoIP lookup.

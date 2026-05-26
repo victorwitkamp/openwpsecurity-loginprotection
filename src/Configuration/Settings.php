@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace VictorWitkamp\OpenWPSecurity\LoginProtection\Configuration;
 
+use VictorWitkamp\OpenWPSecurity\Core\Configuration\SettingsInputSanitizer;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 final class Settings {
-	private const OPTION_NAME                 = 'openwpsecurity_loginprotection_settings';
-	private const LEGACY_LOGIN_OPTION_NAME    = 'vw_login_protection_2026_settings';
-	private const LEGACY_FIREWALL_OPTION_NAME = 'vw_firewall_2026_settings';
+	private const OPTION_NAME = 'openwpsecurity_loginprotection_settings';
 
 	private SettingsInputSanitizer $input_sanitizer;
 
@@ -24,9 +24,7 @@ final class Settings {
 		$current  = get_option( self::OPTION_NAME, null );
 
 		if ( null === $current ) {
-			$legacy = $this->legacy_settings();
-			$seed   = is_array( $legacy ) ? wp_parse_args( $this->migrate_from_firewall_settings( $legacy ), $defaults ) : $defaults;
-			add_option( self::OPTION_NAME, $seed );
+			add_option( self::OPTION_NAME, $defaults );
 			return;
 		}
 
@@ -116,33 +114,5 @@ final class Settings {
 		 * @param array<string,mixed> $defaults Default settings.
 		 */
 		return (array) apply_filters( 'openwpsecurity_loginprotection_default_settings', $defaults );
-	}
-
-	private function migrate_from_firewall_settings( array $legacy ): array {
-		return $this->sanitize_submission(
-			array(
-				'login_max_attempts'                  => $legacy['login_max_attempts'] ?? 3,
-				'login_window_minutes'                => $legacy['login_window_minutes'] ?? 15,
-				'login_lockout_minutes'               => $legacy['login_lockout_minutes'] ?? 30,
-				'login_lockouts_before_permanent_ban' => $legacy['login_lockouts_before_permanent_ban'] ?? 2,
-				'login_failed_attempts_before_permanent_ban' => $legacy['login_failed_attempts_before_permanent_ban'] ?? 10,
-				'event_retention_days'                => $legacy['event_retention_days'] ?? 90,
-				'trusted_ip_headers'                  => implode( ',', (array) ( $legacy['trusted_ip_headers'] ?? array( 'REMOTE_ADDR' ) ) ),
-				'whitelist_ips'                       => implode( "\n", (array) ( $legacy['whitelist_ips'] ?? array() ) ),
-				'enable_remote_geoip'                 => empty( $legacy['enable_remote_geoip'] ) ? 0 : 1,
-			)
-		);
-	}
-
-	private function legacy_settings(): array|null {
-		$legacy_login_settings = get_option( self::LEGACY_LOGIN_OPTION_NAME, null );
-
-		if ( is_array( $legacy_login_settings ) ) {
-			return $legacy_login_settings;
-		}
-
-		$legacy_firewall_settings = get_option( self::LEGACY_FIREWALL_OPTION_NAME, null );
-
-		return is_array( $legacy_firewall_settings ) ? $legacy_firewall_settings : null;
 	}
 }

@@ -12,9 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class PermanentBanStore {
-	private const OPTION_NAME              = 'openwpsecurity_loginprotection_permanent_bans';
-	private const LEGACY_LOGIN_OPTION_NAME = 'vw_login_protection_2026_permanent_bans';
-	private const LEGACY_OPTION_NAME       = 'vw_firewall_2026_permanent_bans';
+	private const OPTION_NAME = 'openwpsecurity_loginprotection_permanent_bans';
 
 	private LoginEventLogger $login_event_logger;
 	private IpAddressInspector $ip_address_inspector;
@@ -28,10 +26,6 @@ final class PermanentBanStore {
 		if ( get_option( self::OPTION_NAME, null ) === null ) {
 			add_option( self::OPTION_NAME, array(), '', false );
 		}
-
-		$this->migrate_legacy_login_bans();
-		$this->migrate_legacy_firewall_bans();
-		$this->normalize_legacy_sources();
 	}
 
 	public function get_all_bans(): array {
@@ -62,8 +56,7 @@ final class PermanentBanStore {
 			return;
 		}
 
-		$source = $this->normalized_source( $source );
-		$bans   = $this->get_all_bans();
+		$bans = $this->get_all_bans();
 
 		if ( isset( $bans[ $ip ] ) ) {
 			return;
@@ -92,98 +85,5 @@ final class PermanentBanStore {
 				),
 			)
 		);
-	}
-
-	private function normalize_legacy_sources(): void {
-		$bans    = $this->get_all_bans();
-		$changed = false;
-
-		foreach ( $bans as $ip => $ban ) {
-			$source = isset( $ban['source'] ) ? $this->normalized_source( (string) $ban['source'] ) : '';
-
-			if ( $source !== (string) ( $ban['source'] ?? '' ) ) {
-				$bans[ $ip ]['source'] = $source;
-				$changed               = true;
-			}
-		}
-
-		if ( $changed ) {
-			update_option( self::OPTION_NAME, $bans, false );
-		}
-	}
-
-	private function migrate_legacy_firewall_bans(): void {
-		$legacy_bans = get_option( self::LEGACY_OPTION_NAME, array() );
-
-		if ( ! is_array( $legacy_bans ) || array() === $legacy_bans ) {
-			return;
-		}
-
-		$current_bans = $this->get_all_bans();
-		$changed      = false;
-
-		foreach ( $legacy_bans as $ip => $ban ) {
-			if ( ! is_array( $ban ) ) {
-				continue;
-			}
-
-			$source = isset( $ban['source'] ) ? $this->normalized_source( (string) $ban['source'] ) : '';
-
-			if ( ! $this->is_login_ban_source( $source ) ) {
-				continue;
-			}
-
-			if ( ! isset( $current_bans[ $ip ] ) || ! is_array( $current_bans[ $ip ] ) ) {
-				$ban['source']       = $source;
-				$current_bans[ $ip ] = $ban;
-			}
-
-			$changed = true;
-		}
-
-		if ( ! $changed ) {
-			return;
-		}
-
-		update_option( self::OPTION_NAME, $current_bans, false );
-	}
-
-	private function migrate_legacy_login_bans(): void {
-		$legacy_bans = get_option( self::LEGACY_LOGIN_OPTION_NAME, array() );
-
-		if ( ! is_array( $legacy_bans ) || array() === $legacy_bans ) {
-			return;
-		}
-
-		$current_bans = $this->get_all_bans();
-		$changed      = false;
-
-		foreach ( $legacy_bans as $ip => $ban ) {
-			if ( ! is_array( $ban ) || isset( $current_bans[ $ip ] ) ) {
-				continue;
-			}
-
-			$source = isset( $ban['source'] ) ? $this->normalized_source( (string) $ban['source'] ) : '';
-
-			if ( ! $this->is_login_ban_source( $source ) ) {
-				continue;
-			}
-
-			$ban['source']       = $source;
-			$current_bans[ $ip ] = $ban;
-			$changed             = true;
-		}
-
-		if ( $changed ) {
-			update_option( self::OPTION_NAME, $current_bans, false );
-		}
-	}
-
-	private function is_login_ban_source( string $source ): bool {
-		return in_array( $source, array( 'login_protection', 'login_lockout' ), true );
-	}
-
-	private function normalized_source( string $source ): string {
-		return 'login_lockout' === $source ? 'login_protection' : $source;
 	}
 }

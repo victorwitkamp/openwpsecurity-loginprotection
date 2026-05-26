@@ -9,20 +9,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class FailedLoginStreakStore {
-	private const OPTION_NAME              = 'openwpsecurity_loginprotection_failed_login_streaks';
-	private const LEGACY_LOGIN_OPTION_NAME = 'vw_login_protection_2026_failed_login_streaks';
-	private const LEGACY_OPTION_NAME       = 'vw_firewall_2026_failed_login_streaks';
+	private const OPTION_NAME = 'openwpsecurity_loginprotection_failed_login_streaks';
 
 	public function ensure_storage(): void {
 		if ( get_option( self::OPTION_NAME, null ) === null ) {
-			$legacy_streaks = get_option( self::LEGACY_LOGIN_OPTION_NAME, null );
-
-			if ( ! is_array( $legacy_streaks ) ) {
-				$legacy_streaks = get_option( self::LEGACY_OPTION_NAME, null );
-			}
-
-			$seed = is_array( $legacy_streaks ) ? $legacy_streaks : array();
-			add_option( self::OPTION_NAME, $seed, '', false );
+			add_option( self::OPTION_NAME, array(), '', false );
 		}
 	}
 
