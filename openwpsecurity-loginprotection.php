@@ -15,7 +15,18 @@
 
 declare(strict_types=1);
 
-use VictorWitkamp\OpenWPSecurity\LoginProtection\Runtime\WordPressIntegration;
+use Psr\Http\Message\ServerRequestInterface;
+use VictorWitkamp\OpenWPSecurity\Core\Admin\Reporting\EventReportFormatter;
+use VictorWitkamp\OpenWPSecurity\Core\Http\IpAddressInspector;
+use VictorWitkamp\OpenWPSecurity\Core\Http\RequestContext;
+use VictorWitkamp\OpenWPSecurity\Core\Logging\EventRetention;
+use VictorWitkamp\OpenWPSecurity\Core\Presentation\Templates\TemplateRenderer;
+use VictorWitkamp\OpenWPSecurity\Core\Runtime\WordPressPluginIntegration;
+use VictorWitkamp\OpenWPSecurity\Core\Security\Ban\PermanentBanStore;
+use VictorWitkamp\OpenWPSecurity\LoginProtection\Configuration\Settings;
+use VictorWitkamp\OpenWPSecurity\LoginProtection\Runtime\Plugin;
+use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\Events\LoginEventLogger;
+use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\Events\LoginEventTable;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -40,7 +51,69 @@ if ( ! file_exists( $composer_autoload ) ) {
 
 require_once $composer_autoload;
 
-$wordpress_integration = new WordPressIntegration();
+$wordpress_integration = new WordPressPluginIntegration(
+	Plugin::class,
+	'Login Protection',
+	array(
+		RequestContext::class       => static function ( Settings $settings, IpAddressInspector $ip_address_inspector, ServerRequestInterface $request ): RequestContext {
+			return new RequestContext( $settings, $ip_address_inspector, $request, 'openwpsecurity_loginprotection_is_ip_whitelisted' );
+		},
+		TemplateRenderer::class     => static function (): TemplateRenderer {
+			return new TemplateRenderer(
+				OPENWPSECURITY_LOGINPROTECTION_DIR . 'templates/',
+				'Login Protection template file was not found.',
+				'openwpsecurity-loginprotection-runtime',
+				OPENWPSECURITY_LOGINPROTECTION_URL . 'assets/css/runtime.css',
+				'openwpsecurity-loginprotection-runtime',
+				OPENWPSECURITY_LOGINPROTECTION_URL . 'assets/js/runtime.js',
+				OPENWPSECURITY_LOGINPROTECTION_VERSION
+			);
+		},
+		EventRetention::class       => static function ( Settings $settings, LoginEventTable $login_event_table ): EventRetention {
+			return new EventRetention( $settings, $login_event_table, 'openwpsecurity_loginprotection_delete_expired_events' );
+		},
+		PermanentBanStore::class    => static function ( LoginEventLogger $login_event_logger, IpAddressInspector $ip_address_inspector ): PermanentBanStore {
+			return new PermanentBanStore(
+				'openwpsecurity_loginprotection_permanent_bans',
+				$ip_address_inspector,
+				static function ( string $ip, string $reason, string $source, array $context ) use ( $login_event_logger ): void {
+					$login_event_logger->log(
+						'permanent_ban_created',
+						$ip,
+						'',
+						'',
+						array(
+							'details' => array_merge(
+								array(
+									'reason' => $reason,
+									'source' => $source,
+								),
+								$context
+							),
+						)
+					);
+				},
+				'login_protection'
+			);
+		},
+		EventReportFormatter::class => static function (): EventReportFormatter {
+			return new EventReportFormatter(
+				array(
+					'success_login'         => 'Successful Login',
+					'failed_login'          => 'Failed Login',
+					'blocked_login'         => 'Blocked Login',
+					'login_lockout'         => 'Lockout Created',
+					'permanent_ban_created' => 'Permanent Ban Created',
+				),
+				array(
+					'login_protection' => 'Login Protection',
+					'login_lockout'    => 'Login Protection',
+					'manual'           => 'Manual',
+				)
+			);
+		},
+	)
+);
 
 register_activation_hook( OPENWPSECURITY_LOGINPROTECTION_FILE, array( $wordpress_integration, 'activate' ) );
 register_deactivation_hook( OPENWPSECURITY_LOGINPROTECTION_FILE, array( $wordpress_integration, 'deactivate' ) );

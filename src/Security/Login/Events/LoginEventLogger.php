@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\Events;
 
 use VictorWitkamp\OpenWPSecurity\Core\Location\GeoIpLookup;
+use VictorWitkamp\OpenWPSecurity\Core\Http\RequestContext;
+use VictorWitkamp\OpenWPSecurity\Core\Logging\EventRecord;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Configuration\Settings;
-use VictorWitkamp\OpenWPSecurity\LoginProtection\Http\RequestContext;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Logging\CredentialFormatter;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -48,6 +49,6 @@ final class LoginEventLogger {
 			'details'            => $details ? wp_json_encode( $details ) : '',
 		);
 
-		$this->login_event_writer->insert( $event );
+		$this->login_event_writer->insert( EventRecord::from_array( $event ) );
 	}
 }

@@ -7,9 +7,9 @@ namespace VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login;
 use WP_Error;
 use WP_User;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Configuration\Settings;
-use VictorWitkamp\OpenWPSecurity\LoginProtection\Http\RequestContext;
-use VictorWitkamp\OpenWPSecurity\LoginProtection\Http\Response\RequestDenialResponder;
-use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Ban\PermanentBanStore;
+use VictorWitkamp\OpenWPSecurity\Core\Http\RequestContext;
+use VictorWitkamp\OpenWPSecurity\Core\Http\Response\RequestDenialResponder;
+use VictorWitkamp\OpenWPSecurity\Core\Security\Ban\PermanentBanStore;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\Events\LoginEventLogger;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -39,6 +39,7 @@ final class LoginAttemptGuard {
 	}
 
 	public function register_hooks(): void {
+		add_filter( 'authenticate', array( $this, 'reject_banned_login' ), 1, 3 );
 		add_filter( 'authenticate', array( $this, 'reject_locked_out_login' ), 5, 3 );
 		add_filter( 'authenticate', array( $this, 'record_failed_login' ), 99, 3 );
 		add_action( 'wp_login', array( $this, 'record_successful_login' ), 10, 2 );
@@ -78,6 +79,42 @@ final class LoginAttemptGuard {
 			add_filter( 'login_message', array( $this, 'render_lockout_message' ) );
 			return;
 		}
+	}
+
+	public function reject_banned_login( $user, string $username, string $password ) {
+		if ( $username === '' && $password === '' ) {
+			return $user;
+		}
+
+		$ip = $this->get_ip();
+
+		if ( $this->is_ip_whitelisted( $ip ) ) {
+			return $user;
+		}
+
+		$ban = $this->ban_store->get_ban_for_ip( $ip );
+
+		if ( array() === $ban ) {
+			return $user;
+		}
+
+		$this->login_event_logger->log(
+			'blocked_login',
+			$ip,
+			$username,
+			$password,
+			array(
+				'details' => array(
+					'reason'     => 'permanent_ban',
+					'ban_source' => (string) ( $ban['source'] ?? '' ),
+				),
+			)
+		);
+
+		return new WP_Error(
+			'openwpsecurity_loginprotection_permanently_banned',
+			'This IP address has been permanently banned by OpenWPSecurity - Login Protection.'
+		);
 	}
 
 	public function reject_locked_out_login( $user, string $username, string $password ) {
@@ -127,7 +164,7 @@ final class LoginAttemptGuard {
 			return $user;
 		}
 
-		if ( 'openwpsecurity_loginprotection_locked_out' === $user->get_error_code() ) {
+		if ( in_array( $user->get_error_code(), array( 'openwpsecurity_loginprotection_locked_out', 'openwpsecurity_loginprotection_permanently_banned' ), true ) ) {
 			return $user;
 		}
 

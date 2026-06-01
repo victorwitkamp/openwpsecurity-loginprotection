@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace VictorWitkamp\OpenWPSecurity\LoginProtection\Runtime;
 
+use VictorWitkamp\OpenWPSecurity\Core\Runtime\PluginLifecycle;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Admin\Navigation\AdminMenu;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Configuration\Settings;
-use VictorWitkamp\OpenWPSecurity\LoginProtection\Logging\EventRetention;
-use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Ban\PermanentBanStore;
+use VictorWitkamp\OpenWPSecurity\Core\Logging\EventRetention;
+use VictorWitkamp\OpenWPSecurity\Core\Security\Ban\PermanentBanStore;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\Events\LoginEventSchema;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\FailedLoginStreakStore;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\LoginAttemptGuard;
@@ -17,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Plugin {
+final class Plugin implements PluginLifecycle {
 	private Settings $settings;
 	private LoginEventSchema $login_event_schema;
 	private EventRetention $event_retention;
