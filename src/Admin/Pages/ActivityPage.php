@@ -50,20 +50,21 @@ final class ActivityPage extends AbstractAdminPage {
 		?>
 		<div class="wrap vwfw-admin">
 			<h1>OpenWPSecurity - Login Protection Activity</h1>
+			<p>Inspect successful, failed, and blocked login attempts together with temporary-ban and permanent-ban events.</p>
 			<?php $this->render_page_tabs( 'openwpsecurity-loginprotection-activity' ); ?>
 			<?php $this->render_period_form( 'openwpsecurity-loginprotection-activity', $period, true, $this->login_activity_filter_input->query_args( $filters ) ); ?>
 			<?php $this->render_activity_filters_form( $period, $filters, $country_options ); ?>
-			<?php $this->country_distribution_panel->render( $countries, 'Login Events by Country', 'Events' ); ?>
+			<?php $this->country_distribution_panel->render( $countries, 'Login Activity by Country', 'Events' ); ?>
 
 			<?php
 			$this->record_table_panel->render(
 				'Login Activity',
-				'This view includes successful logins, failed logins, blocked logins, lockouts, and login-triggered permanent bans.',
+				'This view includes successful logins, failed logins, blocked logins, temporary bans, and login-triggered permanent bans.',
 				$total_items,
 				$paginator->render(),
-				array( 'Time', 'Type', 'IP', 'Country', 'Username', 'Password', 'Lockout Expires', 'Request URI' ),
+				array( 'Time', 'Type', 'IP', 'Country', 'Username', 'Password', 'Temporary Ban Expires', 'Request URI' ),
 				$rows,
-				'No login events found for this period.',
+				'No login activity found for this period.',
 				'widefat striped fixed vwfw-activity-table',
 				function ( array $row ): void {
 					?>

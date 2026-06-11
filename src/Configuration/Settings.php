@@ -24,10 +24,6 @@ final class Settings extends OptionBackedSettingsStore {
 		return self::OPTION_NAME;
 	}
 
-	public function sanitize_submission( array $submission ): array {
-		return array_merge( $this->sanitize_login_submission( $submission ), $this->sanitize_infrastructure_submission( $submission ) );
-	}
-
 	public function sanitize_login_submission( array $submission ): array {
 		return array(
 			'login_max_attempts'                         => max( 1, (int) ( $submission['login_max_attempts'] ?? 3 ) ),

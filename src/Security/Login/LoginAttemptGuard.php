@@ -10,6 +10,8 @@ use VictorWitkamp\OpenWPSecurity\LoginProtection\Configuration\Settings;
 use VictorWitkamp\OpenWPSecurity\Core\Http\RequestContext;
 use VictorWitkamp\OpenWPSecurity\Core\Http\Response\RequestDenialResponder;
 use VictorWitkamp\OpenWPSecurity\Core\Security\Ban\PermanentBanStore;
+use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Ban\TemporaryBanCounterStore;
+use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Ban\TemporaryBanRepository;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\Events\LoginEventLogger;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,29 +20,31 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class LoginAttemptGuard {
 	private Settings $settings;
-	private LoginLockoutStore $lockout_store;
+	private TemporaryBanRepository $temporary_ban_repository;
+	private TemporaryBanCounterStore $temporary_ban_counter_store;
 	private PermanentBanStore $ban_store;
 	private LoginEventLogger $login_event_logger;
 	private RequestDenialResponder $denial_responder;
 	private RequestContext $request_context;
 	private AttemptCounter $attempt_counter;
 	private FailedLoginStreakStore $failed_login_streak_store;
-	private int $login_lockout_expires = 0;
+	private int $temporary_ban_expires = 0;
 
-	public function __construct( Settings $settings, LoginLockoutStore $lockout_store, PermanentBanStore $ban_store, LoginEventLogger $login_event_logger, RequestDenialResponder $denial_responder, RequestContext $request_context, AttemptCounter $attempt_counter, FailedLoginStreakStore $failed_login_streak_store ) {
-		$this->settings                  = $settings;
-		$this->lockout_store             = $lockout_store;
-		$this->ban_store                 = $ban_store;
-		$this->login_event_logger        = $login_event_logger;
-		$this->denial_responder          = $denial_responder;
-		$this->request_context           = $request_context;
-		$this->attempt_counter           = $attempt_counter;
-		$this->failed_login_streak_store = $failed_login_streak_store;
+	public function __construct( Settings $settings, TemporaryBanRepository $temporary_ban_repository, TemporaryBanCounterStore $temporary_ban_counter_store, PermanentBanStore $ban_store, LoginEventLogger $login_event_logger, RequestDenialResponder $denial_responder, RequestContext $request_context, AttemptCounter $attempt_counter, FailedLoginStreakStore $failed_login_streak_store ) {
+		$this->settings                    = $settings;
+		$this->temporary_ban_repository    = $temporary_ban_repository;
+		$this->temporary_ban_counter_store = $temporary_ban_counter_store;
+		$this->ban_store                   = $ban_store;
+		$this->login_event_logger          = $login_event_logger;
+		$this->denial_responder            = $denial_responder;
+		$this->request_context             = $request_context;
+		$this->attempt_counter             = $attempt_counter;
+		$this->failed_login_streak_store   = $failed_login_streak_store;
 	}
 
 	public function register_hooks(): void {
 		add_filter( 'authenticate', array( $this, 'reject_banned_login' ), 1, 3 );
-		add_filter( 'authenticate', array( $this, 'reject_locked_out_login' ), 5, 3 );
+		add_filter( 'authenticate', array( $this, 'reject_temporarily_banned_login' ), 5, 3 );
 		add_filter( 'authenticate', array( $this, 'record_failed_login' ), 99, 3 );
 		add_action( 'wp_login', array( $this, 'record_successful_login' ), 10, 2 );
 		add_action( 'login_init', array( $this, 'prepare_login_screen' ), 1 );
@@ -72,11 +76,11 @@ final class LoginAttemptGuard {
 			);
 		}
 
-		$expires = $this->lockout_store->lockout_expires_at( $ip );
+		$expires = $this->temporary_ban_repository->temporary_ban_expires_at( $ip );
 
 		if ( $expires > 0 ) {
-			$this->login_lockout_expires = $expires;
-			add_filter( 'login_message', array( $this, 'render_lockout_message' ) );
+			$this->temporary_ban_expires = $expires;
+			add_filter( 'login_message', array( $this, 'render_temporary_ban_message' ) );
 			return;
 		}
 	}
@@ -117,7 +121,7 @@ final class LoginAttemptGuard {
 		);
 	}
 
-	public function reject_locked_out_login( $user, string $username, string $password ) {
+	public function reject_temporarily_banned_login( $user, string $username, string $password ) {
 		if ( $username === '' && $password === '' ) {
 			return $user;
 		}
@@ -128,7 +132,7 @@ final class LoginAttemptGuard {
 			return $user;
 		}
 
-		$expires = $this->lockout_store->lockout_expires_at( $ip );
+		$expires = $this->temporary_ban_repository->temporary_ban_expires_at( $ip );
 
 		if ( $expires <= 0 ) {
 			return $user;
@@ -192,7 +196,7 @@ final class LoginAttemptGuard {
 
 		if ( $this->create_permanent_ban_after_failed_login_streak( $ip, $username, $failed_login_streak ) ) {
 			$this->attempt_counter->clear( $ip );
-			$this->lockout_store->clear_lockout( $ip );
+			$this->temporary_ban_repository->remove_temporary_ban( $ip );
 			$this->failed_login_streak_store->clear_failed_login_streak( $ip );
 			$this->denial_responder->deny_permanently(
 				$ip,
@@ -207,7 +211,8 @@ final class LoginAttemptGuard {
 			return $user;
 		}
 
-		$expires = $this->lockout_store->create_lockout( $ip, $settings['login_lockout_minutes'] * MINUTE_IN_SECONDS );
+		$lockout_count = $this->temporary_ban_counter_store->increment_for_ip( $ip );
+		$expires       = $this->temporary_ban_repository->create_temporary_ban( $ip, $settings['login_lockout_minutes'] * MINUTE_IN_SECONDS, $lockout_count );
 		$this->attempt_counter->clear( $ip );
 
 		$this->login_event_logger->log(
@@ -218,13 +223,13 @@ final class LoginAttemptGuard {
 			array(
 				'details'            => array(
 					'failed_attempts' => $state['count'],
+					'lockout_count'   => $lockout_count,
 				),
 				'lockout_expires_at' => gmdate( 'Y-m-d H:i:s', $expires ),
 			)
 		);
 
-		$lockout_count = $this->lockout_store->record_lockout( $ip );
-		$created_ban   = $this->create_permanent_ban_after_repeated_lockouts(
+		$created_ban = $this->create_permanent_ban_after_repeated_temporary_bans(
 			$ip,
 			$username,
 			(int) $state['count'],
@@ -233,7 +238,7 @@ final class LoginAttemptGuard {
 		);
 
 		if ( $created_ban ) {
-			$this->lockout_store->clear_lockout( $ip );
+			$this->temporary_ban_repository->remove_temporary_ban( $ip );
 			$this->failed_login_streak_store->clear_failed_login_streak( $ip );
 			$this->denial_responder->deny_permanently(
 				$ip,
@@ -252,7 +257,7 @@ final class LoginAttemptGuard {
 
 		if ( '' !== $ip ) {
 			$this->attempt_counter->clear( $ip );
-			$this->lockout_store->clear_lockout( $ip );
+			$this->temporary_ban_repository->remove_temporary_ban( $ip );
 			$this->failed_login_streak_store->clear_failed_login_streak( $ip );
 		}
 
@@ -269,12 +274,12 @@ final class LoginAttemptGuard {
 		);
 	}
 
-	public function render_lockout_message( string $message ): string {
-		if ( $this->login_lockout_expires <= 0 ) {
+	public function render_temporary_ban_message( string $message ): string {
+		if ( $this->temporary_ban_expires <= 0 ) {
 			return $message;
 		}
 
-		$minutes_left = max( 1, (int) ceil( ( $this->login_lockout_expires - time() ) / MINUTE_IN_SECONDS ) );
+		$minutes_left = max( 1, (int) ceil( ( $this->temporary_ban_expires - time() ) / MINUTE_IN_SECONDS ) );
 
 		return '<div id="login_error"><strong>OpenWPSecurity - Login Protection:</strong> Too many failed login attempts were detected from this IP address. Try again in ' . esc_html( (string) $minutes_left ) . ' minute(s).</div>' . $message;
 	}
@@ -287,7 +292,7 @@ final class LoginAttemptGuard {
 		return $this->request_context->is_ip_whitelisted( $ip );
 	}
 
-	private function create_permanent_ban_after_repeated_lockouts( string $ip, string $username, int $failed_attempt_count, int $lockout_expires, int $lockout_count ): bool {
+	private function create_permanent_ban_after_repeated_temporary_bans( string $ip, string $username, int $failed_attempt_count, int $lockout_expires, int $lockout_count ): bool {
 		$settings = $this->settings->get();
 
 		if ( (int) $settings['login_lockouts_before_permanent_ban'] <= 0 ) {
@@ -304,7 +309,7 @@ final class LoginAttemptGuard {
 
 		$this->ban_store->create_ban(
 			$ip,
-			'IP address reached the permanent-ban threshold after repeated temporary lockouts.',
+			'IP address reached the permanent-ban threshold after repeated temporary bans.',
 			'login_protection',
 			array(
 				'username'                  => $username,

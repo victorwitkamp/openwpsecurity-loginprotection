@@ -1,0 +1,55 @@
+<?php
+
+declare(strict_types=1);
+
+namespace VictorWitkamp\OpenWPSecurity\LoginProtection\Admin\Pages;
+
+use VictorWitkamp\OpenWPSecurity\Core\Admin\Pages\AbstractAdminPage;
+use VictorWitkamp\OpenWPSecurity\Core\Admin\Presentation\TemporaryBansPanel;
+use VictorWitkamp\OpenWPSecurity\Core\Admin\Reporting\EventReportFormatter;
+use VictorWitkamp\OpenWPSecurity\Core\Admin\Reporting\ReportPeriod;
+use VictorWitkamp\OpenWPSecurity\LoginProtection\Admin\Navigation\AdminMenu;
+use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Ban\TemporaryBanRepository;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+final class TemporaryBansPage extends AbstractAdminPage {
+	private const PAGE_SLUG    = 'openwpsecurity-loginprotection-temporary-bans';
+	private const NONCE_ACTION = 'openwpsecurity_loginprotection_temporary_bans_action';
+
+	private TemporaryBansPanel $temporary_bans_panel;
+	private TemporaryBanRepository $temporary_ban_repository;
+
+	public function __construct( TemporaryBansPanel $temporary_bans_panel, TemporaryBanRepository $temporary_ban_repository, ReportPeriod $report_period, EventReportFormatter $event_report_formatter ) {
+		parent::__construct( $report_period, $event_report_formatter, AdminMenu::page_tabs() );
+		$this->temporary_bans_panel     = $temporary_bans_panel;
+		$this->temporary_ban_repository = $temporary_ban_repository;
+	}
+
+	public function render(): void {
+		$this->assert_page_access();
+
+		$notice = $this->temporary_bans_panel->handle_actions( $this->temporary_ban_repository, self::NONCE_ACTION );
+		$rows   = $this->temporary_bans_panel->sorted_rows( $this->temporary_ban_repository );
+		?>
+		<div class="wrap vwfw-admin">
+			<h1>OpenWPSecurity - Login Protection Temporary Bans</h1>
+			<p>Manage IP addresses currently denied access to the WordPress login flow.</p>
+			<?php $this->render_page_tabs( self::PAGE_SLUG ); ?>
+			<?php $this->temporary_bans_panel->render_notice( $notice ); ?>
+			<?php
+			$this->temporary_bans_panel->render(
+				self::PAGE_SLUG,
+				self::NONCE_ACTION,
+				'Currently Temporarily Banned Login IP Addresses',
+				'Login Protection temporary bans deny login attempts until they expire or are manually removed.',
+				$rows,
+				'No Login Protection temporary bans are currently active.'
+			);
+			?>
+		</div>
+		<?php
+	}
+}

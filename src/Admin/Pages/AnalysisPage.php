@@ -31,6 +31,7 @@ final class AnalysisPage extends AbstractAdminPage {
 		?>
 		<div class="wrap vwfw-admin">
 			<h1>OpenWPSecurity - Login Protection Analysis</h1>
+			<p>Identify coordinated credential attacks across source IPs, usernames, passwords, networks, and user agents.</p>
 			<?php $this->render_page_tabs( 'openwpsecurity-loginprotection-analysis' ); ?>
 			<?php $this->render_period_form( 'openwpsecurity-loginprotection-analysis', $period, true ); ?>
 
@@ -45,125 +46,111 @@ final class AnalysisPage extends AbstractAdminPage {
 				<?php $this->render_summary_card( 'UA Campaigns', (int) $summary['user_agent_campaigns'] ); ?>
 			</div>
 
-			<div class="vwfw-grid vwfw-grid--two">
-				<?php $this->render_password_strategy_panel( $this->login_credential_correlation_report->password_strategy_counts( $period_seconds ) ); ?>
-				<?php $this->render_password_feature_signature_panel( $this->login_credential_correlation_report->password_feature_signatures( $period_seconds ) ); ?>
+			<?php $this->render_key_findings_panel( $this->login_credential_correlation_report->key_findings( $period_seconds ) ); ?>
+
+			<div class="vwfw-grid">
+				<?php $this->render_password_characteristics_panel( $this->login_credential_correlation_report->password_characteristics( $period_seconds ) ); ?>
 			</div>
 
-			<div class="vwfw-grid vwfw-grid--two">
-				<?php $this->render_common_passwords_panel( $this->login_credential_correlation_report->common_passwords( $period_seconds ) ); ?>
-				<?php $this->render_reused_password_fingerprint_panel( $this->login_credential_correlation_report->reused_password_fingerprints( $period_seconds ) ); ?>
+			<div class="vwfw-grid vwfw-grid--single">
+				<?php $this->render_targeted_usernames_panel( $this->login_credential_correlation_report->targeted_usernames( $period_seconds ) ); ?>
+				<?php $this->render_important_passwords_panel( $this->login_credential_correlation_report->important_passwords( $period_seconds, 8 ) ); ?>
 			</div>
 
-			<div class="vwfw-grid vwfw-grid--two">
+			<div class="vwfw-grid vwfw-grid--single">
 				<?php $this->render_high_variety_ip_panel( $this->login_credential_correlation_report->high_variety_ips( $period_seconds ) ); ?>
 				<?php $this->render_ipv4_network_campaign_panel( $this->login_credential_correlation_report->ipv4_network_campaigns( $period_seconds ) ); ?>
 			</div>
 
-			<?php $this->render_user_agent_campaign_panel( $this->login_credential_correlation_report->user_agent_campaigns( $period_seconds ) ); ?>
+			<?php $this->render_user_agent_campaign_panel( $this->login_credential_correlation_report->user_agent_campaigns( $period_seconds, 6 ) ); ?>
 		</div>
 		<?php
 	}
 
-	private function render_password_strategy_panel( array $rows ): void {
+	private function render_key_findings_panel( array $rows ): void {
+		if ( empty( $rows ) ) {
+			return;
+		}
+		?>
+		<div class="vwfw-analysis-findings">
+			<?php foreach ( $rows as $row ) : ?>
+				<article class="vwfw-finding-card">
+					<span class="vwfw-finding-label"><?php echo esc_html( (string) $row['label'] ); ?></span>
+					<strong><?php echo esc_html( (string) $row['value'] ); ?></strong>
+					<p><?php echo esc_html( (string) $row['detail'] ); ?></p>
+				</article>
+			<?php endforeach; ?>
+		</div>
+		<?php
+	}
+
+	private function render_password_characteristics_panel( array $rows ): void {
+		$groups = $this->group_password_characteristics( $rows );
 		?>
 		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( 'Password Strategy Signals', 'Derived features from submitted failed-login passwords. The password tables below display the actual stored values.', count( $rows ), false ); ?>
-			<div class="vwfw-record-table-wrap">
-				<table class="widefat striped fixed vwfw-compact-table">
-					<thead>
-						<tr>
-							<th>Signal</th>
-							<th>Attempts</th>
-							<th>IPs</th>
-							<th>Usernames</th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php if ( empty( $rows ) ) : ?>
-							<tr><td colspan="4">No password strategy signals found for this period.</td></tr>
-						<?php else : ?>
-							<?php foreach ( $rows as $row ) : ?>
-								<tr>
-									<td><?php echo esc_html( (string) $row['label'] ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['usernames'] ) ); ?></td>
-								</tr>
+			<?php $this->render_record_header( 'Password Characteristics', 'How attackers are constructing the actual failed-password values.', count( $rows ), false ); ?>
+			<?php if ( empty( $groups ) ) : ?>
+				<p class="description">No password characteristics found for this period.</p>
+			<?php else : ?>
+				<div class="vwfw-distribution-grid">
+					<?php foreach ( $groups as $group_label => $group_rows ) : ?>
+						<section class="vwfw-distribution-card">
+							<h3><?php echo esc_html( (string) $group_label ); ?></h3>
+							<?php foreach ( $group_rows as $row ) : ?>
+								<?php $bar_width = min( 100, max( 0, (float) $row['attempt_share'] ) ); ?>
+								<div class="vwfw-distribution-row">
+									<div class="vwfw-distribution-heading">
+										<span><?php echo esc_html( (string) $row['label'] ); ?></span>
+										<strong><?php echo esc_html( $this->format_percentage( (float) $row['attempt_share'] ) ); ?></strong>
+									</div>
+									<div class="vwfw-distribution-track" aria-hidden="true">
+										<span class="vwfw-distribution-bar" style="width: <?php echo esc_attr( (string) $bar_width ); ?>%"></span>
+									</div>
+									<div class="vwfw-distribution-meta">
+										<span><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?> attempts</span>
+										<span><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?> IPs</span>
+										<span><?php echo esc_html( number_format_i18n( (int) $row['password_values'] ) ); ?> passwords</span>
+									</div>
+								</div>
 							<?php endforeach; ?>
-						<?php endif; ?>
-					</tbody>
-				</table>
-			</div>
+						</section>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
 
-	private function render_password_feature_signature_panel( array $rows ): void {
+	private function render_targeted_usernames_panel( array $rows ): void {
 		?>
 		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( 'Password Feature Signatures', 'Password attempts grouped by length, character classes, trailing digits, year use, and username inclusion.', count( $rows ), false ); ?>
+			<?php $this->render_record_header( 'Targeted Usernames', 'Submitted usernames ranked by attack volume and password variety.', count( $rows ), false ); ?>
 			<div class="vwfw-record-table-wrap">
-				<table class="widefat striped fixed vwfw-analysis-table">
+				<table class="widefat striped fixed vwfw-analysis-table vwfw-target-table">
 					<thead>
 						<tr>
-							<th>Feature Signature</th>
+							<th>Username</th>
 							<th>Attempts</th>
-							<th>IPs</th>
-							<th>Usernames</th>
-							<th>Fingerprints</th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php if ( empty( $rows ) ) : ?>
-							<tr><td colspan="5">No password feature signatures found for this period.</td></tr>
-						<?php else : ?>
-							<?php foreach ( $rows as $row ) : ?>
-								<tr>
-									<td class="vwfw-break"><?php echo esc_html( (string) $row['feature'] ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['usernames'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['password_fingerprints'] ) ); ?></td>
-								</tr>
-							<?php endforeach; ?>
-						<?php endif; ?>
-					</tbody>
-				</table>
-			</div>
-		</div>
-		<?php
-	}
-
-	private function render_reused_password_fingerprint_panel( array $rows ): void {
-		?>
-		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( 'Reused Passwords', 'Actual failed-login passwords reused across IP addresses, usernames, or countries.', count( $rows ), false ); ?>
-			<div class="vwfw-record-table-wrap">
-				<table class="widefat striped fixed vwfw-analysis-table">
-					<thead>
-						<tr>
-							<th>Password</th>
-							<th>Attempts</th>
-							<th>IPs</th>
-							<th>Usernames</th>
-							<th>Countries</th>
-							<th>First Seen</th>
+							<th>Spread</th>
+							<th>Username in Password</th>
+							<th>Blocked</th>
 							<th>Last Seen</th>
 						</tr>
 					</thead>
 					<tbody>
 						<?php if ( empty( $rows ) ) : ?>
-							<tr><td colspan="7">No reused password fingerprints found for this period.</td></tr>
+							<tr><td colspan="6">No targeted usernames found for this period.</td></tr>
 						<?php else : ?>
 							<?php foreach ( $rows as $row ) : ?>
 								<tr>
-									<td class="vwfw-sensitive"><?php echo esc_html( (string) $row['password_value'] ); ?></td>
+									<td class="vwfw-table-primary"><?php echo esc_html( (string) $row['username'] ); ?></td>
 									<td><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['usernames'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['countries'] ) ); ?></td>
-									<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['first_seen'] ) ); ?></td>
+									<td class="vwfw-break"><?php echo esc_html( (string) $row['target_summary'] ); ?></td>
+									<td>
+										<?php echo esc_html( $this->format_percentage( (float) $row['username_in_password_share'] ) ); ?>
+										<span class="vwfw-muted"><?php echo esc_html( number_format_i18n( (int) $row['username_in_password_attempts'] ) ); ?> attempts</span>
+									</td>
+									<td><?php echo esc_html( number_format_i18n( (int) $row['blocked'] ) ); ?></td>
 									<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></td>
 								</tr>
 							<?php endforeach; ?>
@@ -175,36 +162,41 @@ final class AnalysisPage extends AbstractAdminPage {
 		<?php
 	}
 
-	private function render_common_passwords_panel( array $rows ): void {
+	private function render_important_passwords_panel( array $rows ): void {
 		?>
 		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( 'Most Tried Passwords', 'Actual failed-login passwords ranked by total attempts in the selected period.', count( $rows ), false ); ?>
+			<?php $this->render_record_header( 'Password Campaigns', 'Actual failed-password values ranked by volume and distribution.', count( $rows ), false ); ?>
 			<div class="vwfw-record-table-wrap">
-				<table class="widefat striped fixed vwfw-analysis-table">
+				<table class="widefat striped fixed vwfw-analysis-table vwfw-password-table">
 					<thead>
 						<tr>
 							<th>Password</th>
 							<th>Attempts</th>
-							<th>IPs</th>
-							<th>Usernames</th>
-							<th>UA Fingerprints</th>
-							<th>First Seen</th>
-							<th>Last Seen</th>
+							<th>Spread</th>
+							<th>Distribution</th>
+							<th>Seen</th>
 						</tr>
 					</thead>
 					<tbody>
 						<?php if ( empty( $rows ) ) : ?>
-							<tr><td colspan="7">No failed-login passwords found for this period.</td></tr>
+							<tr><td colspan="5">No failed-login passwords found for this period.</td></tr>
 						<?php else : ?>
 							<?php foreach ( $rows as $row ) : ?>
 								<tr>
 									<td class="vwfw-sensitive"><?php echo esc_html( (string) $row['password_value'] ); ?></td>
 									<td><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['usernames'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['user_agent_fingerprints'] ) ); ?></td>
-									<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['first_seen'] ) ); ?></td>
-									<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></td>
+									<td class="vwfw-break"><?php echo esc_html( (string) $row['spread_summary'] ); ?></td>
+									<td>
+										<div class="vwfw-mini-metrics">
+											<span><strong><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?></strong> IPs</span>
+											<span><strong><?php echo esc_html( number_format_i18n( (int) $row['countries'] ) ); ?></strong> countries</span>
+											<span><strong><?php echo esc_html( number_format_i18n( (int) $row['user_agent_fingerprints'] ) ); ?></strong> UAs</span>
+										</div>
+									</td>
+									<td>
+										<span><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['first_seen'] ) ); ?></span>
+										<span class="vwfw-muted"><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></span>
+									</td>
 								</tr>
 							<?php endforeach; ?>
 						<?php endif; ?>
@@ -213,6 +205,21 @@ final class AnalysisPage extends AbstractAdminPage {
 			</div>
 		</div>
 		<?php
+	}
+
+	private function format_percentage( float $percentage ): string {
+		return number_format_i18n( $percentage, 1 ) . '%';
+	}
+
+	private function group_password_characteristics( array $rows ): array {
+		$groups = array();
+
+		foreach ( $rows as $row ) {
+			$group_label              = (string) $row['group_label'];
+			$groups[ $group_label ][] = $row;
+		}
+
+		return $groups;
 	}
 
 	private function render_high_variety_ip_panel( array $rows ): void {
@@ -231,7 +238,7 @@ final class AnalysisPage extends AbstractAdminPage {
 							<th>Usernames</th>
 							<th>User Agents</th>
 							<th>Blocked</th>
-							<th>Lockouts</th>
+							<th>Last Seen</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -248,7 +255,7 @@ final class AnalysisPage extends AbstractAdminPage {
 									<td><?php echo esc_html( number_format_i18n( (int) $row['usernames'] ) ); ?></td>
 									<td><?php echo esc_html( number_format_i18n( (int) $row['user_agents'] ) ); ?></td>
 									<td><?php echo esc_html( number_format_i18n( (int) $row['blocked'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['lockouts'] ) ); ?></td>
+									<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></td>
 								</tr>
 							<?php endforeach; ?>
 						<?php endif; ?>

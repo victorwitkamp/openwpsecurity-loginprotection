@@ -4,33 +4,35 @@ declare(strict_types=1);
 
 namespace VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\Reports;
 
-use VictorWitkamp\OpenWPSecurity\LoginProtection\Security\Login\Events\LoginEventLookup;
+use VictorWitkamp\OpenWPSecurity\Core\Admin\Reporting\CountryDistribution;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 final class LoginActivityReport {
-	private LoginEventLookup $login_event_lookup;
+	private LoginActivityLookup $login_activity_lookup;
+	private CountryDistribution $country_distribution;
 
-	public function __construct( LoginEventLookup $login_event_lookup ) {
-		$this->login_event_lookup = $login_event_lookup;
+	public function __construct( LoginActivityLookup $login_activity_lookup, CountryDistribution $country_distribution ) {
+		$this->login_activity_lookup = $login_activity_lookup;
+		$this->country_distribution  = $country_distribution;
 	}
 
 	public function count( array $filters = array(), ?int $period_seconds = null ): int {
-		return $this->login_event_lookup->count_events_matching_types( $this->event_types(), $filters, $period_seconds );
+		return $this->login_activity_lookup->count( $this->event_types(), $filters, $period_seconds );
 	}
 
 	public function rows( array $filters = array(), ?int $period_seconds = null, ?int $limit = null, int $offset = 0 ): array {
-		return $this->login_event_lookup->find_rows_matching_types( $this->event_types(), $filters, $period_seconds, $limit, $offset );
+		return $this->login_activity_lookup->rows( $this->event_types(), $filters, $period_seconds, $limit, $offset );
 	}
 
 	public function countries( array $filters = array(), ?int $period_seconds = null, int $limit = 8 ): array {
-		return $this->login_event_lookup->country_totals_matching_types( $this->event_types(), $filters, $period_seconds, $limit );
+		return $this->country_distribution->summarize( $this->login_activity_lookup->country_totals( $this->event_types(), $filters, $period_seconds, null ), $limit );
 	}
 
 	public function country_options( array $filters = array(), ?int $period_seconds = null ): array {
-		return $this->login_event_lookup->country_options_matching_types( $this->event_types(), $filters, $period_seconds );
+		return $this->login_activity_lookup->country_options( $this->event_types(), $filters, $period_seconds );
 	}
 
 	public function event_types(): array {
