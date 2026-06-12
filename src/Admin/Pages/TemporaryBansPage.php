@@ -35,18 +35,18 @@ final class TemporaryBansPage extends AbstractAdminPage {
 		$rows   = $this->temporary_bans_panel->sorted_rows( $this->temporary_ban_repository );
 		?>
 		<div class="wrap vwfw-admin">
-			<h1>OpenWPSecurity - Login Protection Temporary Bans</h1>
-			<p>Manage IP addresses currently denied access to the WordPress login flow.</p>
+			<h1><?php esc_html_e( 'OpenWPSecurity - Login Protection Temporary Bans', 'openwpsecurity-loginprotection' ); ?></h1>
+			<p><?php esc_html_e( 'Manage IP addresses currently denied access to the WordPress login flow.', 'openwpsecurity-loginprotection' ); ?></p>
 			<?php $this->render_page_tabs( self::PAGE_SLUG ); ?>
 			<?php $this->temporary_bans_panel->render_notice( $notice ); ?>
 			<?php
 			$this->temporary_bans_panel->render(
 				self::PAGE_SLUG,
 				self::NONCE_ACTION,
-				'Currently Temporarily Banned Login IP Addresses',
-				'Login Protection temporary bans deny login attempts until they expire or are manually removed.',
+				__( 'Currently Temporarily Banned Login IP Addresses', 'openwpsecurity-loginprotection' ),
+				__( 'Login Protection temporary bans deny login attempts until they expire or are manually removed.', 'openwpsecurity-loginprotection' ),
 				$rows,
-				'No Login Protection temporary bans are currently active.'
+				__( 'No Login Protection temporary bans are currently active.', 'openwpsecurity-loginprotection' )
 			);
 			?>
 		</div>

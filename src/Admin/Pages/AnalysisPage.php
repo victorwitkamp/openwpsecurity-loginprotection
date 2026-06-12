@@ -30,20 +30,20 @@ final class AnalysisPage extends AbstractAdminPage {
 		$summary        = $this->login_credential_correlation_report->summary( $period_seconds );
 		?>
 		<div class="wrap vwfw-admin">
-			<h1>OpenWPSecurity - Login Protection Analysis</h1>
-			<p>Identify coordinated credential attacks across source IPs, usernames, passwords, networks, and user agents.</p>
+			<h1><?php esc_html_e( 'OpenWPSecurity - Login Protection Analysis', 'openwpsecurity-loginprotection' ); ?></h1>
+			<p><?php esc_html_e( 'Identify coordinated credential attacks across source IPs, usernames, passwords, networks, and user agents.', 'openwpsecurity-loginprotection' ); ?></p>
 			<?php $this->render_page_tabs( 'openwpsecurity-loginprotection-analysis' ); ?>
 			<?php $this->render_period_form( 'openwpsecurity-loginprotection-analysis', $period, true ); ?>
 
 			<div class="vwfw-cards">
-				<?php $this->render_summary_card( 'Attack Attempts', (int) $summary['correlated_attempts'] ); ?>
-				<?php $this->render_summary_card( 'Attack IPs', (int) $summary['correlated_ips'] ); ?>
-				<?php $this->render_summary_card( 'Password Fingerprints', (int) $summary['password_fingerprints'] ); ?>
-				<?php $this->render_summary_card( 'Repeated Fingerprints', (int) $summary['repeated_fingerprints'] ); ?>
-				<?php $this->render_summary_card( 'Fingerprints on 5+ IPs', (int) $summary['fingerprints_seen_on_5plus_ips'] ); ?>
-				<?php $this->render_summary_card( 'High-Variety IPs', (int) $summary['high_variety_ips'] ); ?>
-				<?php $this->render_summary_card( '/24 Campaigns', (int) $summary['network_campaigns'] ); ?>
-				<?php $this->render_summary_card( 'UA Campaigns', (int) $summary['user_agent_campaigns'] ); ?>
+				<?php $this->render_summary_card( __( 'Attack Attempts', 'openwpsecurity-loginprotection' ), (int) $summary['correlated_attempts'] ); ?>
+				<?php $this->render_summary_card( __( 'Attack IPs', 'openwpsecurity-loginprotection' ), (int) $summary['correlated_ips'] ); ?>
+				<?php $this->render_summary_card( __( 'Password Fingerprints', 'openwpsecurity-loginprotection' ), (int) $summary['password_fingerprints'] ); ?>
+				<?php $this->render_summary_card( __( 'Repeated Fingerprints', 'openwpsecurity-loginprotection' ), (int) $summary['repeated_fingerprints'] ); ?>
+				<?php $this->render_summary_card( __( 'Fingerprints on 5+ IPs', 'openwpsecurity-loginprotection' ), (int) $summary['fingerprints_seen_on_5plus_ips'] ); ?>
+				<?php $this->render_summary_card( __( 'High-Variety IPs', 'openwpsecurity-loginprotection' ), (int) $summary['high_variety_ips'] ); ?>
+				<?php $this->render_summary_card( __( '/24 Campaigns', 'openwpsecurity-loginprotection' ), (int) $summary['network_campaigns'] ); ?>
+				<?php $this->render_summary_card( __( 'UA Campaigns', 'openwpsecurity-loginprotection' ), (int) $summary['user_agent_campaigns'] ); ?>
 			</div>
 
 			<?php $this->render_key_findings_panel( $this->login_credential_correlation_report->key_findings( $period_seconds ) ); ?>
@@ -88,9 +88,9 @@ final class AnalysisPage extends AbstractAdminPage {
 		$groups = $this->group_password_characteristics( $rows );
 		?>
 		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( 'Password Characteristics', 'How attackers are constructing the actual failed-password values.', count( $rows ), false ); ?>
+			<?php $this->render_record_header( __( 'Password Characteristics', 'openwpsecurity-loginprotection' ), __( 'How attackers are constructing the actual failed-password values.', 'openwpsecurity-loginprotection' ), count( $rows ), false ); ?>
 			<?php if ( empty( $groups ) ) : ?>
-				<p class="description">No password characteristics found for this period.</p>
+				<p class="description"><?php esc_html_e( 'No password characteristics found for this period.', 'openwpsecurity-loginprotection' ); ?></p>
 			<?php else : ?>
 				<div class="vwfw-distribution-grid">
 					<?php foreach ( $groups as $group_label => $group_rows ) : ?>
@@ -107,9 +107,9 @@ final class AnalysisPage extends AbstractAdminPage {
 										<span class="vwfw-distribution-bar" style="width: <?php echo esc_attr( (string) $bar_width ); ?>%"></span>
 									</div>
 									<div class="vwfw-distribution-meta">
-										<span><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?> attempts</span>
-										<span><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?> IPs</span>
-										<span><?php echo esc_html( number_format_i18n( (int) $row['password_values'] ) ); ?> passwords</span>
+										<span><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?> <?php esc_html_e( 'attempts', 'openwpsecurity-loginprotection' ); ?></span>
+										<span><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?> <?php esc_html_e( 'IPs', 'openwpsecurity-loginprotection' ); ?></span>
+										<span><?php echo esc_html( number_format_i18n( (int) $row['password_values'] ) ); ?> <?php esc_html_e( 'passwords', 'openwpsecurity-loginprotection' ); ?></span>
 									</div>
 								</div>
 							<?php endforeach; ?>
@@ -124,22 +124,22 @@ final class AnalysisPage extends AbstractAdminPage {
 	private function render_targeted_usernames_panel( array $rows ): void {
 		?>
 		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( 'Targeted Usernames', 'Submitted usernames ranked by attack volume and password variety.', count( $rows ), false ); ?>
+			<?php $this->render_record_header( __( 'Targeted Usernames', 'openwpsecurity-loginprotection' ), __( 'Submitted usernames ranked by attack volume and password variety.', 'openwpsecurity-loginprotection' ), count( $rows ), false ); ?>
 			<div class="vwfw-record-table-wrap">
 				<table class="widefat striped fixed vwfw-analysis-table vwfw-target-table">
 					<thead>
 						<tr>
-							<th>Username</th>
-							<th>Attempts</th>
-							<th>Spread</th>
-							<th>Username in Password</th>
-							<th>Blocked</th>
-							<th>Last Seen</th>
+							<th><?php esc_html_e( 'Username', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Attempts', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Spread', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Username in Password', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Blocked', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Last Seen', 'openwpsecurity-loginprotection' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
 						<?php if ( empty( $rows ) ) : ?>
-							<tr><td colspan="6">No targeted usernames found for this period.</td></tr>
+							<tr><td colspan="6"><?php esc_html_e( 'No targeted usernames found for this period.', 'openwpsecurity-loginprotection' ); ?></td></tr>
 						<?php else : ?>
 							<?php foreach ( $rows as $row ) : ?>
 								<tr>
@@ -148,7 +148,7 @@ final class AnalysisPage extends AbstractAdminPage {
 									<td class="vwfw-break"><?php echo esc_html( (string) $row['target_summary'] ); ?></td>
 									<td>
 										<?php echo esc_html( $this->format_percentage( (float) $row['username_in_password_share'] ) ); ?>
-										<span class="vwfw-muted"><?php echo esc_html( number_format_i18n( (int) $row['username_in_password_attempts'] ) ); ?> attempts</span>
+										<span class="vwfw-muted"><?php echo esc_html( number_format_i18n( (int) $row['username_in_password_attempts'] ) ); ?> <?php esc_html_e( 'attempts', 'openwpsecurity-loginprotection' ); ?></span>
 									</td>
 									<td><?php echo esc_html( number_format_i18n( (int) $row['blocked'] ) ); ?></td>
 									<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></td>
@@ -165,21 +165,21 @@ final class AnalysisPage extends AbstractAdminPage {
 	private function render_important_passwords_panel( array $rows ): void {
 		?>
 		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( 'Password Campaigns', 'Actual failed-password values ranked by volume and distribution.', count( $rows ), false ); ?>
+			<?php $this->render_record_header( __( 'Password Campaigns', 'openwpsecurity-loginprotection' ), __( 'Actual failed-password values ranked by volume and distribution.', 'openwpsecurity-loginprotection' ), count( $rows ), false ); ?>
 			<div class="vwfw-record-table-wrap">
 				<table class="widefat striped fixed vwfw-analysis-table vwfw-password-table">
 					<thead>
 						<tr>
-							<th>Password</th>
-							<th>Attempts</th>
-							<th>Spread</th>
-							<th>Distribution</th>
-							<th>Seen</th>
+							<th><?php esc_html_e( 'Password', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Attempts', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Spread', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Distribution', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Seen', 'openwpsecurity-loginprotection' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
 						<?php if ( empty( $rows ) ) : ?>
-							<tr><td colspan="5">No failed-login passwords found for this period.</td></tr>
+							<tr><td colspan="5"><?php esc_html_e( 'No failed-login passwords found for this period.', 'openwpsecurity-loginprotection' ); ?></td></tr>
 						<?php else : ?>
 							<?php foreach ( $rows as $row ) : ?>
 								<tr>
@@ -188,9 +188,9 @@ final class AnalysisPage extends AbstractAdminPage {
 									<td class="vwfw-break"><?php echo esc_html( (string) $row['spread_summary'] ); ?></td>
 									<td>
 										<div class="vwfw-mini-metrics">
-											<span><strong><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?></strong> IPs</span>
-											<span><strong><?php echo esc_html( number_format_i18n( (int) $row['countries'] ) ); ?></strong> countries</span>
-											<span><strong><?php echo esc_html( number_format_i18n( (int) $row['user_agent_fingerprints'] ) ); ?></strong> UAs</span>
+											<span><strong><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?></strong> <?php esc_html_e( 'IPs', 'openwpsecurity-loginprotection' ); ?></span>
+											<span><strong><?php echo esc_html( number_format_i18n( (int) $row['countries'] ) ); ?></strong> <?php esc_html_e( 'countries', 'openwpsecurity-loginprotection' ); ?></span>
+											<span><strong><?php echo esc_html( number_format_i18n( (int) $row['user_agent_fingerprints'] ) ); ?></strong> <?php esc_html_e( 'UAs', 'openwpsecurity-loginprotection' ); ?></span>
 										</div>
 									</td>
 									<td>
@@ -225,25 +225,25 @@ final class AnalysisPage extends AbstractAdminPage {
 	private function render_high_variety_ip_panel( array $rows ): void {
 		?>
 		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( 'IPs Trying Many Passwords', 'Source IPs with many distinct password fingerprints, which is a stronger credential-stuffing signal than exact password reuse alone.', count( $rows ), false ); ?>
+			<?php $this->render_record_header( __( 'IPs Trying Many Passwords', 'openwpsecurity-loginprotection' ), __( 'Source IPs with many distinct password fingerprints, which is a stronger credential-stuffing signal than exact password reuse alone.', 'openwpsecurity-loginprotection' ), count( $rows ), false ); ?>
 			<div class="vwfw-record-table-wrap">
 				<table class="widefat striped fixed vwfw-analysis-table">
 					<thead>
 						<tr>
-							<th>IP</th>
-							<th>Country</th>
-							<th>Attempts</th>
-							<th>Fingerprints</th>
-							<th>Lengths</th>
-							<th>Usernames</th>
-							<th>User Agents</th>
-							<th>Blocked</th>
-							<th>Last Seen</th>
+							<th><?php esc_html_e( 'IP', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Country', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Attempts', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Fingerprints', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Lengths', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Usernames', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'User Agents', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Blocked', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Last Seen', 'openwpsecurity-loginprotection' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
 						<?php if ( empty( $rows ) ) : ?>
-							<tr><td colspan="9">No high-variety IPs found for this period.</td></tr>
+							<tr><td colspan="9"><?php esc_html_e( 'No high-variety IPs found for this period.', 'openwpsecurity-loginprotection' ); ?></td></tr>
 						<?php else : ?>
 							<?php foreach ( $rows as $row ) : ?>
 								<tr>
@@ -269,24 +269,24 @@ final class AnalysisPage extends AbstractAdminPage {
 	private function render_ipv4_network_campaign_panel( array $rows ): void {
 		?>
 		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( 'IPv4 /24 Campaigns', 'IPv4 ranges where multiple source IPs attempted login credentials in the selected period.', count( $rows ), false ); ?>
+			<?php $this->render_record_header( __( 'IPv4 /24 Campaigns', 'openwpsecurity-loginprotection' ), __( 'IPv4 ranges where multiple source IPs attempted login credentials in the selected period.', 'openwpsecurity-loginprotection' ), count( $rows ), false ); ?>
 			<div class="vwfw-record-table-wrap">
 				<table class="widefat striped fixed vwfw-analysis-table">
 					<thead>
 						<tr>
-							<th>Network</th>
-							<th>Attempts</th>
-							<th>IPs</th>
-							<th>Fingerprints</th>
-							<th>Usernames</th>
-							<th>Countries</th>
-							<th>First Seen</th>
-							<th>Last Seen</th>
+							<th><?php esc_html_e( 'Network', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Attempts', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'IPs', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Fingerprints', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Usernames', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Countries', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'First Seen', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Last Seen', 'openwpsecurity-loginprotection' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
 						<?php if ( empty( $rows ) ) : ?>
-							<tr><td colspan="8">No IPv4 /24 campaigns found for this period.</td></tr>
+							<tr><td colspan="8"><?php esc_html_e( 'No IPv4 /24 campaigns found for this period.', 'openwpsecurity-loginprotection' ); ?></td></tr>
 						<?php else : ?>
 							<?php foreach ( $rows as $row ) : ?>
 								<tr>
@@ -311,23 +311,23 @@ final class AnalysisPage extends AbstractAdminPage {
 	private function render_user_agent_campaign_panel( array $rows ): void {
 		?>
 		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( 'User-Agent Campaigns', 'Shared user-agent fingerprints across multiple IP addresses, with browser, platform, device, and raw user-agent details.', count( $rows ), false ); ?>
+			<?php $this->render_record_header( __( 'User-Agent Campaigns', 'openwpsecurity-loginprotection' ), __( 'Shared user-agent fingerprints across multiple IP addresses, with browser, platform, device, and raw user-agent details.', 'openwpsecurity-loginprotection' ), count( $rows ), false ); ?>
 			<div class="vwfw-record-table-wrap">
 				<table class="widefat striped fixed vwfw-user-agent-table">
 					<thead>
 						<tr>
-							<th>User-Agent</th>
-							<th>Attempts</th>
-							<th>IPs</th>
-							<th>Passwords</th>
-							<th>Usernames</th>
-							<th>First Seen</th>
-							<th>Last Seen</th>
+							<th><?php esc_html_e( 'User-Agent', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Attempts', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'IPs', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Passwords', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Usernames', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'First Seen', 'openwpsecurity-loginprotection' ); ?></th>
+							<th><?php esc_html_e( 'Last Seen', 'openwpsecurity-loginprotection' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
 						<?php if ( empty( $rows ) ) : ?>
-							<tr><td colspan="7">No user-agent campaigns found for this period.</td></tr>
+							<tr><td colspan="7"><?php esc_html_e( 'No user-agent campaigns found for this period.', 'openwpsecurity-loginprotection' ); ?></td></tr>
 						<?php else : ?>
 							<?php foreach ( $rows as $row ) : ?>
 								<tr>

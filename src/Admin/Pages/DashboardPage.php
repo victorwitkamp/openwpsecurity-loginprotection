@@ -40,8 +40,8 @@ final class DashboardPage extends AbstractAdminPage {
 		$data = $this->load_dashboard_data( $period );
 		?>
 		<div class="wrap vwfw-admin vwfw-dashboard">
-			<h1>OpenWPSecurity - Login Protection</h1>
-			<p>Selected-range login activity and current enforcement state.</p>
+			<h1><?php esc_html_e( 'OpenWPSecurity - Login Protection', 'openwpsecurity-loginprotection' ); ?></h1>
+			<p><?php esc_html_e( 'Selected-range login activity and current enforcement state.', 'openwpsecurity-loginprotection' ); ?></p>
 
 			<?php $this->render_page_tabs( 'openwpsecurity-loginprotection' ); ?>
 			<?php $this->render_period_form( 'openwpsecurity-loginprotection', $period, false ); ?>
@@ -66,13 +66,13 @@ final class DashboardPage extends AbstractAdminPage {
 		$summary = $data['summary'];
 		?>
 		<div class="vwfw-cards">
-			<?php $this->render_summary_card( 'Total Attempts', (int) $summary['total_attempts'] ); ?>
-			<?php $this->render_summary_card( 'Successful Logins', (int) $summary['successful_attempts'] ); ?>
-			<?php $this->render_summary_card( 'Failed Logins', (int) $summary['failed_attempts'] ); ?>
-			<?php $this->render_summary_card( 'Blocked Logins', (int) $summary['blocked_attempts'] ); ?>
-			<?php $this->render_summary_card( 'Temporary Bans Created', (int) $summary['lockouts'] ); ?>
-			<?php $this->render_summary_card( 'Permanent Bans Created', (int) $summary['permanent_bans'] ); ?>
-			<?php $this->render_summary_card( 'Unique Login IPs', (int) $summary['unique_ips'] ); ?>
+			<?php $this->render_summary_card( __( 'Total Attempts', 'openwpsecurity-loginprotection' ), (int) $summary['total_attempts'] ); ?>
+			<?php $this->render_summary_card( __( 'Successful Logins', 'openwpsecurity-loginprotection' ), (int) $summary['successful_attempts'] ); ?>
+			<?php $this->render_summary_card( __( 'Failed Logins', 'openwpsecurity-loginprotection' ), (int) $summary['failed_attempts'] ); ?>
+			<?php $this->render_summary_card( __( 'Blocked Logins', 'openwpsecurity-loginprotection' ), (int) $summary['blocked_attempts'] ); ?>
+			<?php $this->render_summary_card( __( 'Temporary Bans Created', 'openwpsecurity-loginprotection' ), (int) $summary['lockouts'] ); ?>
+			<?php $this->render_summary_card( __( 'Permanent Bans Created', 'openwpsecurity-loginprotection' ), (int) $summary['permanent_bans'] ); ?>
+			<?php $this->render_summary_card( __( 'Unique Login IPs', 'openwpsecurity-loginprotection' ), (int) $summary['unique_ips'] ); ?>
 		</div>
 		<?php
 	}
@@ -84,20 +84,20 @@ final class DashboardPage extends AbstractAdminPage {
 		<section class="vwfw-current-state">
 			<div class="vwfw-section-heading">
 				<div>
-					<h2>Current Enforcement</h2>
-					<p class="description">Live enforcement state. These values are not affected by the selected reporting range.</p>
+					<h2><?php esc_html_e( 'Current Enforcement', 'openwpsecurity-loginprotection' ); ?></h2>
+					<p class="description"><?php esc_html_e( 'Live enforcement state. These values are not affected by the selected reporting range.', 'openwpsecurity-loginprotection' ); ?></p>
 				</div>
 			</div>
 			<div class="vwfw-state-grid vwfw-state-grid--compact">
 				<a class="vwfw-state-item" href="<?php echo esc_url( $temporary_bans_url ); ?>">
-					<span>Current Temporary Bans</span>
+					<span><?php esc_html_e( 'Current Temporary Bans', 'openwpsecurity-loginprotection' ); ?></span>
 					<strong><?php echo esc_html( number_format_i18n( (int) $data['temporary_bans'] ) ); ?></strong>
-					<small>Open management page</small>
+					<small><?php esc_html_e( 'Open management page', 'openwpsecurity-loginprotection' ); ?></small>
 				</a>
 				<a class="vwfw-state-item" href="<?php echo esc_url( $permanent_bans_url ); ?>">
-					<span>Current Permanent Bans</span>
+					<span><?php esc_html_e( 'Current Permanent Bans', 'openwpsecurity-loginprotection' ); ?></span>
 					<strong><?php echo esc_html( number_format_i18n( (int) $data['current_bans'] ) ); ?></strong>
-					<small>Open management page</small>
+					<small><?php esc_html_e( 'Open management page', 'openwpsecurity-loginprotection' ); ?></small>
 				</a>
 			</div>
 		</section>

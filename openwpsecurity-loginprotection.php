@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: OpenWPSecurity - Login Protection
- * Plugin URI:  https://victorwitkamp.nl/
+ * Plugin URI:  https://github.com/victorwitkamp/openwpsecurity-loginprotection
  * Description: Login protection for WordPress with failed-login tracking, temporary bans, permanent bans, and login-event reporting.
  * Version:     0.3.0
  * Requires at least: 6.5

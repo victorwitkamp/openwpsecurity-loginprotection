@@ -49,22 +49,31 @@ final class ActivityPage extends AbstractAdminPage {
 		$country_options = $this->login_activity_report->country_options( $this->login_activity_filter_input->country_option_filters( $filters ), $period_seconds );
 		?>
 		<div class="wrap vwfw-admin">
-			<h1>OpenWPSecurity - Login Protection Activity</h1>
-			<p>Inspect successful, failed, and blocked login attempts together with temporary-ban and permanent-ban events.</p>
+			<h1><?php esc_html_e( 'OpenWPSecurity - Login Protection Activity', 'openwpsecurity-loginprotection' ); ?></h1>
+			<p><?php esc_html_e( 'Inspect successful, failed, and blocked login attempts together with temporary-ban and permanent-ban events.', 'openwpsecurity-loginprotection' ); ?></p>
 			<?php $this->render_page_tabs( 'openwpsecurity-loginprotection-activity' ); ?>
 			<?php $this->render_period_form( 'openwpsecurity-loginprotection-activity', $period, true, $this->login_activity_filter_input->query_args( $filters ) ); ?>
 			<?php $this->render_activity_filters_form( $period, $filters, $country_options ); ?>
-			<?php $this->country_distribution_panel->render( $countries, 'Login Activity by Country', 'Events' ); ?>
+			<?php $this->country_distribution_panel->render( $countries, __( 'Login Activity by Country', 'openwpsecurity-loginprotection' ), __( 'Events', 'openwpsecurity-loginprotection' ) ); ?>
 
 			<?php
 			$this->record_table_panel->render(
-				'Login Activity',
-				'This view includes successful logins, failed logins, blocked logins, temporary bans, and login-triggered permanent bans.',
+				__( 'Login Activity', 'openwpsecurity-loginprotection' ),
+				__( 'This view includes successful logins, failed logins, blocked logins, temporary bans, and login-triggered permanent bans.', 'openwpsecurity-loginprotection' ),
 				$total_items,
 				$paginator->render(),
-				array( 'Time', 'Type', 'IP', 'Country', 'Username', 'Password', 'Temporary Ban Expires', 'Request URI' ),
+				array(
+					__( 'Time', 'openwpsecurity-loginprotection' ),
+					__( 'Type', 'openwpsecurity-loginprotection' ),
+					__( 'IP', 'openwpsecurity-loginprotection' ),
+					__( 'Country', 'openwpsecurity-loginprotection' ),
+					__( 'Username', 'openwpsecurity-loginprotection' ),
+					__( 'Password', 'openwpsecurity-loginprotection' ),
+					__( 'Temporary Ban Expires', 'openwpsecurity-loginprotection' ),
+					__( 'Request URI', 'openwpsecurity-loginprotection' ),
+				),
 				$rows,
-				'No login activity found for this period.',
+				__( 'No login activity found for this period.', 'openwpsecurity-loginprotection' ),
 				'widefat striped fixed vwfw-activity-table',
 				function ( array $row ): void {
 					?>
@@ -85,7 +94,7 @@ final class ActivityPage extends AbstractAdminPage {
 	}
 
 	private function render_activity_filters_form( string $period, array $filters, array $country_options ): void {
-		$country_select_options = array( '' => 'All Countries' );
+		$country_select_options = array( '' => __( 'All Countries', 'openwpsecurity-loginprotection' ) );
 
 		foreach ( $country_options as $country ) {
 			$country_select_options[ (string) $country['code'] ] = (string) $country['label'];
@@ -99,7 +108,7 @@ final class ActivityPage extends AbstractAdminPage {
 					'type'    => 'select',
 					'id'      => 'vwfw-login-event-type',
 					'name'    => 'event_type',
-					'label'   => 'Event Type',
+					'label'   => __( 'Event Type', 'openwpsecurity-loginprotection' ),
 					'value'   => $filters['event_type'],
 					'options' => $this->event_report_formatter->event_type_options( $this->login_activity_filter_input->event_types() ),
 				),
@@ -107,26 +116,26 @@ final class ActivityPage extends AbstractAdminPage {
 					'type'    => 'select',
 					'id'      => 'vwfw-login-country',
 					'name'    => 'country_code',
-					'label'   => 'Country',
+					'label'   => __( 'Country', 'openwpsecurity-loginprotection' ),
 					'value'   => $filters['country_code'],
 					'options' => $country_select_options,
 				),
 				array(
 					'id'    => 'vwfw-login-ip',
 					'name'  => 'ip_address',
-					'label' => 'IP Contains',
+					'label' => __( 'IP Contains', 'openwpsecurity-loginprotection' ),
 					'value' => $filters['ip_address'],
 				),
 				array(
 					'id'    => 'vwfw-login-username',
 					'name'  => 'username',
-					'label' => 'Username Contains',
+					'label' => __( 'Username Contains', 'openwpsecurity-loginprotection' ),
 					'value' => $filters['username'],
 				),
 				array(
 					'id'    => 'vwfw-login-uri',
 					'name'  => 'request_uri',
-					'label' => 'URI Contains',
+					'label' => __( 'URI Contains', 'openwpsecurity-loginprotection' ),
 					'value' => $filters['request_uri'],
 				),
 			),

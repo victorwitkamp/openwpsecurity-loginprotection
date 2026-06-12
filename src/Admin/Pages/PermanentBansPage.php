@@ -35,8 +35,8 @@ final class PermanentBansPage extends AbstractAdminPage {
 		$rows        = $this->permanent_bans_panel->get_bans( self::PER_PAGE, $paginator->offset() );
 		?>
 		<div class="wrap vwfw-admin">
-			<h1>OpenWPSecurity - Login Protection Permanent Bans</h1>
-			<p>Manage IP addresses that Login Protection blocks from the WordPress login flow.</p>
+			<h1><?php esc_html_e( 'OpenWPSecurity - Login Protection Permanent Bans', 'openwpsecurity-loginprotection' ); ?></h1>
+			<p><?php esc_html_e( 'Manage IP addresses that Login Protection blocks from the WordPress login flow.', 'openwpsecurity-loginprotection' ); ?></p>
 			<?php $this->render_page_tabs( self::PAGE_SLUG ); ?>
 			<?php $this->permanent_bans_panel->render_notice( $notice ); ?>
 
@@ -44,12 +44,12 @@ final class PermanentBansPage extends AbstractAdminPage {
 			$this->permanent_bans_panel->render(
 				self::PAGE_SLUG,
 				self::NONCE_ACTION,
-				'Permanently Banned Login IP Addresses',
-				'These IP addresses are blocked from the WordPress login flow by Login Protection.',
+				__( 'Permanently Banned Login IP Addresses', 'openwpsecurity-loginprotection' ),
+				__( 'These IP addresses are blocked from the WordPress login flow by Login Protection.', 'openwpsecurity-loginprotection' ),
 				$total_items,
 				$rows,
 				$paginator->render(),
-				'No Login Protection permanent bans were found.'
+				__( 'No Login Protection permanent bans were found.', 'openwpsecurity-loginprotection' )
 			);
 			?>
 		</div>
