@@ -42,6 +42,9 @@ final class FailedLoginStreakStore {
 		}
 	}
 
+	/**
+	 * @return array<string, int>
+	 */
 	private function failed_login_streaks(): array {
 		$streaks = get_option( self::OPTION_NAME, array() );
 

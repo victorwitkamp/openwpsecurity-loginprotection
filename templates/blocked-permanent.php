@@ -1,3 +1,7 @@
+<?php
+
+declare(strict_types=1);
+?>
 <!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -10,7 +14,7 @@
 	<div class="vwfw-runtime-shell">
 		<div class="vwfw-runtime-box">
 			<h1 class="vwfw-runtime-title"><?php echo esc_html( isset( $title ) && $title !== '' ? (string) $title : 'Access blocked' ); ?></h1>
-			<p class="vwfw-runtime-text"><?php echo esc_html( isset( $message ) && $message !== '' ? (string) $message : 'This IP address has been permanently blocked by the firewall.' ); ?></p>
+			<p class="vwfw-runtime-text"><?php echo esc_html( isset( $message ) && $message !== '' ? (string) $message : 'This IP address has been permanently blocked by Login Protection.' ); ?></p>
 			<p class="vwfw-runtime-text"><?php echo esc_html( isset( $message_secondary ) && $message_secondary !== '' ? (string) $message_secondary : 'If you believe this is incorrect, contact the site administrator and include the IP address shown below.' ); ?></p>
 			<p class="vwfw-runtime-text"><a class="vwfw-runtime-link" href="<?php echo esc_url( home_url( '/' ) ); ?>">Return to the homepage</a></p>
 			<div class="vwfw-runtime-meta">IP address: <?php echo esc_html( (string) $ip ); ?></div>

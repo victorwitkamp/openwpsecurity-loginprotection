@@ -85,7 +85,7 @@ final class LoginAttemptGuard {
 		}
 	}
 
-	public function reject_banned_login( $user, string $username, string $password ) {
+	public function reject_banned_login( WP_User|WP_Error|null $user, string $username, string $password ): WP_User|WP_Error|null {
 		if ( $username === '' && $password === '' ) {
 			return $user;
 		}
@@ -121,7 +121,7 @@ final class LoginAttemptGuard {
 		);
 	}
 
-	public function reject_temporarily_banned_login( $user, string $username, string $password ) {
+	public function reject_temporarily_banned_login( WP_User|WP_Error|null $user, string $username, string $password ): WP_User|WP_Error|null {
 		if ( $username === '' && $password === '' ) {
 			return $user;
 		}
@@ -159,7 +159,7 @@ final class LoginAttemptGuard {
 		);
 	}
 
-	public function record_failed_login( $user, string $username, string $password ) {
+	public function record_failed_login( WP_User|WP_Error|null $user, string $username, string $password ): WP_User|WP_Error|null {
 		if ( $username === '' && $password === '' ) {
 			return $user;
 		}

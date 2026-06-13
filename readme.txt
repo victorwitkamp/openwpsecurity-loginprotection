@@ -5,7 +5,7 @@ Tags: security, login security, temporary bans, permanent bans, logging
 Requires at least: 6.5
 Tested up to: 6.9.4
 Requires PHP: 8.2
-Stable tag: 0.3.0
+Stable tag: 0.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -95,6 +95,12 @@ Data is stored in plugin-owned database tables on your server. No personal data 
 6. Settings page with thresholds, trusted IP headers, whitelisting, and retention options.
 
 == Changelog ==
+
+= 0.4.0 =
+* Updated to openwpsecurity/core 0.5.0.
+* Wrapped all admin UI strings in i18n functions for full translatability.
+* Added PHPStan static analysis configuration.
+* Refactored analysis page to use injected RecordTablePanel dependency.
 
 = 0.3.0 =
 * Updated to openwpsecurity/core 0.4.0.

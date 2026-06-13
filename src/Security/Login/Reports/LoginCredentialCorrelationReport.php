@@ -56,7 +56,7 @@ final class LoginCredentialCorrelationReport {
 			);
 		}
 
-		if ( is_array( $username_context_signal ) && (int) $username_context_signal['attempts'] > 0 ) {
+		if ( (int) $username_context_signal['attempts'] > 0 ) {
 			$findings[] = array(
 				'label'  => 'Username-based guesses',
 				'value'  => $this->format_percent_value( (float) $username_context_signal['attempt_share'] ),

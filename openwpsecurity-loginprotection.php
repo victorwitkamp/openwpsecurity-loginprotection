@@ -3,7 +3,7 @@
  * Plugin Name: OpenWPSecurity - Login Protection
  * Plugin URI:  https://github.com/victorwitkamp/openwpsecurity-loginprotection
  * Description: Login protection for WordPress with failed-login tracking, temporary bans, permanent bans, and login-event reporting.
- * Version:     0.3.0
+ * Version:     0.4.0
  * Requires at least: 6.5
  * Tested up to: 6.9.4
  * Requires PHP: 8.2
@@ -39,7 +39,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'OPENWPSECURITY_LOGINPROTECTION_VERSION', '0.3.0' );
+define( 'OPENWPSECURITY_LOGINPROTECTION_VERSION', '0.4.0' );
 define( 'OPENWPSECURITY_LOGINPROTECTION_FILE', __FILE__ );
 define( 'OPENWPSECURITY_LOGINPROTECTION_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OPENWPSECURITY_LOGINPROTECTION_URL', plugin_dir_url( __FILE__ ) );
@@ -71,8 +71,8 @@ $wordpress_integration = new WordPressPluginIntegration(
 				'Login Protection template file was not found.',
 				'openwpsecurity-loginprotection-runtime',
 				OPENWPSECURITY_LOGINPROTECTION_URL . 'assets/css/runtime.css',
-				'openwpsecurity-loginprotection-runtime',
-				OPENWPSECURITY_LOGINPROTECTION_URL . 'assets/js/runtime.js',
+				'',
+				'',
 				OPENWPSECURITY_LOGINPROTECTION_VERSION
 			);
 		},

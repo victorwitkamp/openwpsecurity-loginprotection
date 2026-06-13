@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class LoginLockout {
+final readonly class LoginLockout {
 	private string $ip_address;
 	private string $country_code;
 	private string $country_name;
@@ -33,6 +33,9 @@ final class LoginLockout {
 		$this->evidence_json        = $evidence_json;
 	}
 
+	/**
+	 * @return array<string, int|string>
+	 */
 	public function to_row(): array {
 		return array(
 			'ip_address'           => $this->ip_address,

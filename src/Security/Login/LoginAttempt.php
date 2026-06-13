@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class LoginAttempt {
+final readonly class LoginAttempt {
 	private string $attempt_type;
 	private string $ip_address;
 	private string $country_code;
@@ -37,6 +37,9 @@ final class LoginAttempt {
 		$this->evidence_json      = $evidence_json;
 	}
 
+	/**
+	 * @return array<string, string|null>
+	 */
 	public function to_row(): array {
 		return array(
 			'attempt_type'       => $this->attempt_type,

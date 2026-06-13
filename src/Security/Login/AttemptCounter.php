@@ -20,6 +20,9 @@ final class AttemptCounter {
 		$this->transient_key_builder = $transient_key_builder;
 	}
 
+	/**
+	 * @return array{count: int, started_at: int}
+	 */
 	public function current( string $ip ): array {
 		$state = get_transient( $this->transient_key_builder->login_attempt( $ip ) );
 
@@ -36,6 +39,9 @@ final class AttemptCounter {
 		);
 	}
 
+	/**
+	 * @return array{count: int, started_at: int}
+	 */
 	public function increment( string $ip ): array {
 		$settings = $this->settings->get();
 		$state    = $this->current( $ip );

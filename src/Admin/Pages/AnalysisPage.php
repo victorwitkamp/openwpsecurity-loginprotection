@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace VictorWitkamp\OpenWPSecurity\LoginProtection\Admin\Pages;
 
 use VictorWitkamp\OpenWPSecurity\Core\Admin\Pages\AbstractAdminPage;
+use VictorWitkamp\OpenWPSecurity\Core\Admin\Presentation\RecordTablePanel;
 use VictorWitkamp\OpenWPSecurity\Core\Admin\Reporting\EventReportFormatter;
 use VictorWitkamp\OpenWPSecurity\Core\Admin\Reporting\ReportPeriod;
 use VictorWitkamp\OpenWPSecurity\LoginProtection\Admin\Navigation\AdminMenu;
@@ -16,10 +17,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class AnalysisPage extends AbstractAdminPage {
 	private LoginCredentialCorrelationReport $login_credential_correlation_report;
+	private RecordTablePanel $record_table_panel;
 
-	public function __construct( LoginCredentialCorrelationReport $login_credential_correlation_report, ReportPeriod $report_period, EventReportFormatter $event_report_formatter ) {
+	public function __construct( LoginCredentialCorrelationReport $login_credential_correlation_report, RecordTablePanel $record_table_panel, ReportPeriod $report_period, EventReportFormatter $event_report_formatter ) {
 		parent::__construct( $report_period, $event_report_formatter, AdminMenu::page_tabs() );
 		$this->login_credential_correlation_report = $login_credential_correlation_report;
+		$this->record_table_panel                  = $record_table_panel;
 	}
 
 	public function render(): void {
@@ -122,89 +125,69 @@ final class AnalysisPage extends AbstractAdminPage {
 	}
 
 	private function render_targeted_usernames_panel( array $rows ): void {
-		?>
-		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( __( 'Targeted Usernames', 'openwpsecurity-loginprotection' ), __( 'Submitted usernames ranked by attack volume and password variety.', 'openwpsecurity-loginprotection' ), count( $rows ), false ); ?>
-			<div class="vwfw-record-table-wrap">
-				<table class="widefat striped fixed vwfw-analysis-table vwfw-target-table">
-					<thead>
-						<tr>
-							<th><?php esc_html_e( 'Username', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Attempts', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Spread', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Username in Password', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Blocked', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Last Seen', 'openwpsecurity-loginprotection' ); ?></th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php if ( empty( $rows ) ) : ?>
-							<tr><td colspan="6"><?php esc_html_e( 'No targeted usernames found for this period.', 'openwpsecurity-loginprotection' ); ?></td></tr>
-						<?php else : ?>
-							<?php foreach ( $rows as $row ) : ?>
-								<tr>
-									<td class="vwfw-table-primary"><?php echo esc_html( (string) $row['username'] ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?></td>
-									<td class="vwfw-break"><?php echo esc_html( (string) $row['target_summary'] ); ?></td>
-									<td>
-										<?php echo esc_html( $this->format_percentage( (float) $row['username_in_password_share'] ) ); ?>
-										<span class="vwfw-muted"><?php echo esc_html( number_format_i18n( (int) $row['username_in_password_attempts'] ) ); ?> <?php esc_html_e( 'attempts', 'openwpsecurity-loginprotection' ); ?></span>
-									</td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['blocked'] ) ); ?></td>
-									<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></td>
-								</tr>
-							<?php endforeach; ?>
-						<?php endif; ?>
-					</tbody>
-				</table>
-			</div>
-		</div>
-		<?php
+		$this->render_analysis_table(
+			__( 'Targeted Usernames', 'openwpsecurity-loginprotection' ),
+			__( 'Submitted usernames ranked by attack volume and password variety.', 'openwpsecurity-loginprotection' ),
+			array(
+				__( 'Username', 'openwpsecurity-loginprotection' ),
+				__( 'Attempts', 'openwpsecurity-loginprotection' ),
+				__( 'Spread', 'openwpsecurity-loginprotection' ),
+				__( 'Username in Password', 'openwpsecurity-loginprotection' ),
+				__( 'Blocked', 'openwpsecurity-loginprotection' ),
+				__( 'Last Seen', 'openwpsecurity-loginprotection' ),
+			),
+			$rows,
+			__( 'No targeted usernames found for this period.', 'openwpsecurity-loginprotection' ),
+			'widefat striped fixed vwfw-analysis-table vwfw-target-table',
+			function ( array $row ): void {
+				?>
+				<td class="vwfw-table-primary"><?php echo esc_html( (string) $row['username'] ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?></td>
+				<td class="vwfw-break"><?php echo esc_html( (string) $row['target_summary'] ); ?></td>
+				<td>
+					<?php echo esc_html( $this->format_percentage( (float) $row['username_in_password_share'] ) ); ?>
+					<span class="vwfw-muted"><?php echo esc_html( number_format_i18n( (int) $row['username_in_password_attempts'] ) ); ?> <?php esc_html_e( 'attempts', 'openwpsecurity-loginprotection' ); ?></span>
+				</td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['blocked'] ) ); ?></td>
+				<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></td>
+				<?php
+			}
+		);
 	}
 
 	private function render_important_passwords_panel( array $rows ): void {
-		?>
-		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( __( 'Password Campaigns', 'openwpsecurity-loginprotection' ), __( 'Actual failed-password values ranked by volume and distribution.', 'openwpsecurity-loginprotection' ), count( $rows ), false ); ?>
-			<div class="vwfw-record-table-wrap">
-				<table class="widefat striped fixed vwfw-analysis-table vwfw-password-table">
-					<thead>
-						<tr>
-							<th><?php esc_html_e( 'Password', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Attempts', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Spread', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Distribution', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Seen', 'openwpsecurity-loginprotection' ); ?></th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php if ( empty( $rows ) ) : ?>
-							<tr><td colspan="5"><?php esc_html_e( 'No failed-login passwords found for this period.', 'openwpsecurity-loginprotection' ); ?></td></tr>
-						<?php else : ?>
-							<?php foreach ( $rows as $row ) : ?>
-								<tr>
-									<td class="vwfw-sensitive"><?php echo esc_html( (string) $row['password_value'] ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?></td>
-									<td class="vwfw-break"><?php echo esc_html( (string) $row['spread_summary'] ); ?></td>
-									<td>
-										<div class="vwfw-mini-metrics">
-											<span><strong><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?></strong> <?php esc_html_e( 'IPs', 'openwpsecurity-loginprotection' ); ?></span>
-											<span><strong><?php echo esc_html( number_format_i18n( (int) $row['countries'] ) ); ?></strong> <?php esc_html_e( 'countries', 'openwpsecurity-loginprotection' ); ?></span>
-											<span><strong><?php echo esc_html( number_format_i18n( (int) $row['user_agent_fingerprints'] ) ); ?></strong> <?php esc_html_e( 'UAs', 'openwpsecurity-loginprotection' ); ?></span>
-										</div>
-									</td>
-									<td>
-										<span><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['first_seen'] ) ); ?></span>
-										<span class="vwfw-muted"><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></span>
-									</td>
-								</tr>
-							<?php endforeach; ?>
-						<?php endif; ?>
-					</tbody>
-				</table>
-			</div>
-		</div>
-		<?php
+		$this->render_analysis_table(
+			__( 'Password Campaigns', 'openwpsecurity-loginprotection' ),
+			__( 'Actual failed-password values ranked by volume and distribution.', 'openwpsecurity-loginprotection' ),
+			array(
+				__( 'Password', 'openwpsecurity-loginprotection' ),
+				__( 'Attempts', 'openwpsecurity-loginprotection' ),
+				__( 'Spread', 'openwpsecurity-loginprotection' ),
+				__( 'Distribution', 'openwpsecurity-loginprotection' ),
+				__( 'Seen', 'openwpsecurity-loginprotection' ),
+			),
+			$rows,
+			__( 'No failed-login passwords found for this period.', 'openwpsecurity-loginprotection' ),
+			'widefat striped fixed vwfw-analysis-table vwfw-password-table',
+			function ( array $row ): void {
+				?>
+				<td class="vwfw-sensitive"><?php echo esc_html( (string) $row['password_value'] ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?></td>
+				<td class="vwfw-break"><?php echo esc_html( (string) $row['spread_summary'] ); ?></td>
+				<td>
+					<div class="vwfw-mini-metrics">
+						<span><strong><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?></strong> <?php esc_html_e( 'IPs', 'openwpsecurity-loginprotection' ); ?></span>
+						<span><strong><?php echo esc_html( number_format_i18n( (int) $row['countries'] ) ); ?></strong> <?php esc_html_e( 'countries', 'openwpsecurity-loginprotection' ); ?></span>
+						<span><strong><?php echo esc_html( number_format_i18n( (int) $row['user_agent_fingerprints'] ) ); ?></strong> <?php esc_html_e( 'UAs', 'openwpsecurity-loginprotection' ); ?></span>
+					</div>
+				</td>
+				<td>
+					<span><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['first_seen'] ) ); ?></span>
+					<span class="vwfw-muted"><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></span>
+				</td>
+				<?php
+			}
+		);
 	}
 
 	private function format_percentage( float $percentage ): string {
@@ -223,132 +206,117 @@ final class AnalysisPage extends AbstractAdminPage {
 	}
 
 	private function render_high_variety_ip_panel( array $rows ): void {
-		?>
-		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( __( 'IPs Trying Many Passwords', 'openwpsecurity-loginprotection' ), __( 'Source IPs with many distinct password fingerprints, which is a stronger credential-stuffing signal than exact password reuse alone.', 'openwpsecurity-loginprotection' ), count( $rows ), false ); ?>
-			<div class="vwfw-record-table-wrap">
-				<table class="widefat striped fixed vwfw-analysis-table">
-					<thead>
-						<tr>
-							<th><?php esc_html_e( 'IP', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Country', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Attempts', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Fingerprints', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Lengths', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Usernames', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'User Agents', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Blocked', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Last Seen', 'openwpsecurity-loginprotection' ); ?></th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php if ( empty( $rows ) ) : ?>
-							<tr><td colspan="9"><?php esc_html_e( 'No high-variety IPs found for this period.', 'openwpsecurity-loginprotection' ); ?></td></tr>
-						<?php else : ?>
-							<?php foreach ( $rows as $row ) : ?>
-								<tr>
-									<td><?php echo esc_html( (string) $row['ip_address'] ); ?></td>
-									<td><?php echo esc_html( trim( (string) $row['country_code'] . ' ' . (string) $row['country_name'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['password_fingerprints'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['password_lengths'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['usernames'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['user_agents'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['blocked'] ) ); ?></td>
-									<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></td>
-								</tr>
-							<?php endforeach; ?>
-						<?php endif; ?>
-					</tbody>
-				</table>
-			</div>
-		</div>
-		<?php
+		$this->render_analysis_table(
+			__( 'IPs Trying Many Passwords', 'openwpsecurity-loginprotection' ),
+			__( 'Source IPs with many distinct password fingerprints, which is a stronger credential-stuffing signal than exact password reuse alone.', 'openwpsecurity-loginprotection' ),
+			array(
+				__( 'IP', 'openwpsecurity-loginprotection' ),
+				__( 'Country', 'openwpsecurity-loginprotection' ),
+				__( 'Attempts', 'openwpsecurity-loginprotection' ),
+				__( 'Fingerprints', 'openwpsecurity-loginprotection' ),
+				__( 'Lengths', 'openwpsecurity-loginprotection' ),
+				__( 'Usernames', 'openwpsecurity-loginprotection' ),
+				__( 'User Agents', 'openwpsecurity-loginprotection' ),
+				__( 'Blocked', 'openwpsecurity-loginprotection' ),
+				__( 'Last Seen', 'openwpsecurity-loginprotection' ),
+			),
+			$rows,
+			__( 'No high-variety IPs found for this period.', 'openwpsecurity-loginprotection' ),
+			'widefat striped fixed vwfw-analysis-table',
+			function ( array $row ): void {
+				?>
+				<td><?php echo esc_html( (string) $row['ip_address'] ); ?></td>
+				<td><?php echo esc_html( trim( (string) $row['country_code'] . ' ' . (string) $row['country_name'] ) ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['password_fingerprints'] ) ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['password_lengths'] ) ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['usernames'] ) ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['user_agents'] ) ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['blocked'] ) ); ?></td>
+				<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></td>
+				<?php
+			}
+		);
 	}
 
 	private function render_ipv4_network_campaign_panel( array $rows ): void {
-		?>
-		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( __( 'IPv4 /24 Campaigns', 'openwpsecurity-loginprotection' ), __( 'IPv4 ranges where multiple source IPs attempted login credentials in the selected period.', 'openwpsecurity-loginprotection' ), count( $rows ), false ); ?>
-			<div class="vwfw-record-table-wrap">
-				<table class="widefat striped fixed vwfw-analysis-table">
-					<thead>
-						<tr>
-							<th><?php esc_html_e( 'Network', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Attempts', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'IPs', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Fingerprints', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Usernames', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Countries', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'First Seen', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Last Seen', 'openwpsecurity-loginprotection' ); ?></th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php if ( empty( $rows ) ) : ?>
-							<tr><td colspan="8"><?php esc_html_e( 'No IPv4 /24 campaigns found for this period.', 'openwpsecurity-loginprotection' ); ?></td></tr>
-						<?php else : ?>
-							<?php foreach ( $rows as $row ) : ?>
-								<tr>
-									<td><?php echo esc_html( (string) $row['network'] ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['password_fingerprints'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['usernames'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['countries'] ) ); ?></td>
-									<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['first_seen'] ) ); ?></td>
-									<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></td>
-								</tr>
-							<?php endforeach; ?>
-						<?php endif; ?>
-					</tbody>
-				</table>
-			</div>
-		</div>
-		<?php
+		$this->render_analysis_table(
+			__( 'IPv4 /24 Campaigns', 'openwpsecurity-loginprotection' ),
+			__( 'IPv4 ranges where multiple source IPs attempted login credentials in the selected period.', 'openwpsecurity-loginprotection' ),
+			array(
+				__( 'Network', 'openwpsecurity-loginprotection' ),
+				__( 'Attempts', 'openwpsecurity-loginprotection' ),
+				__( 'IPs', 'openwpsecurity-loginprotection' ),
+				__( 'Fingerprints', 'openwpsecurity-loginprotection' ),
+				__( 'Usernames', 'openwpsecurity-loginprotection' ),
+				__( 'Countries', 'openwpsecurity-loginprotection' ),
+				__( 'First Seen', 'openwpsecurity-loginprotection' ),
+				__( 'Last Seen', 'openwpsecurity-loginprotection' ),
+			),
+			$rows,
+			__( 'No IPv4 /24 campaigns found for this period.', 'openwpsecurity-loginprotection' ),
+			'widefat striped fixed vwfw-analysis-table',
+			function ( array $row ): void {
+				?>
+				<td><?php echo esc_html( (string) $row['network'] ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['password_fingerprints'] ) ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['usernames'] ) ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['countries'] ) ); ?></td>
+				<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['first_seen'] ) ); ?></td>
+				<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></td>
+				<?php
+			}
+		);
 	}
 
 	private function render_user_agent_campaign_panel( array $rows ): void {
-		?>
-		<div class="vwfw-panel vwfw-record-panel">
-			<?php $this->render_record_header( __( 'User-Agent Campaigns', 'openwpsecurity-loginprotection' ), __( 'Shared user-agent fingerprints across multiple IP addresses, with browser, platform, device, and raw user-agent details.', 'openwpsecurity-loginprotection' ), count( $rows ), false ); ?>
-			<div class="vwfw-record-table-wrap">
-				<table class="widefat striped fixed vwfw-user-agent-table">
-					<thead>
-						<tr>
-							<th><?php esc_html_e( 'User-Agent', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Attempts', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'IPs', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Passwords', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Usernames', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'First Seen', 'openwpsecurity-loginprotection' ); ?></th>
-							<th><?php esc_html_e( 'Last Seen', 'openwpsecurity-loginprotection' ); ?></th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php if ( empty( $rows ) ) : ?>
-							<tr><td colspan="7"><?php esc_html_e( 'No user-agent campaigns found for this period.', 'openwpsecurity-loginprotection' ); ?></td></tr>
-						<?php else : ?>
-							<?php foreach ( $rows as $row ) : ?>
-								<tr>
-									<td class="vwfw-user-agent-cell">
-										<strong><?php echo esc_html( (string) $row['user_agent_fingerprint'] ); ?></strong>
-										<span><?php echo esc_html( (string) $row['user_agent_summary'] ); ?></span>
-										<code><?php echo esc_html( (string) $row['user_agent'] ); ?></code>
-									</td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['passwords'] ) ); ?></td>
-									<td><?php echo esc_html( number_format_i18n( (int) $row['usernames'] ) ); ?></td>
-									<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['first_seen'] ) ); ?></td>
-									<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></td>
-								</tr>
-							<?php endforeach; ?>
-						<?php endif; ?>
-					</tbody>
-				</table>
-			</div>
-		</div>
-		<?php
+		$this->render_analysis_table(
+			__( 'User-Agent Campaigns', 'openwpsecurity-loginprotection' ),
+			__( 'Shared user-agent fingerprints across multiple IP addresses, with browser, platform, device, and raw user-agent details.', 'openwpsecurity-loginprotection' ),
+			array(
+				__( 'User-Agent', 'openwpsecurity-loginprotection' ),
+				__( 'Attempts', 'openwpsecurity-loginprotection' ),
+				__( 'IPs', 'openwpsecurity-loginprotection' ),
+				__( 'Passwords', 'openwpsecurity-loginprotection' ),
+				__( 'Usernames', 'openwpsecurity-loginprotection' ),
+				__( 'First Seen', 'openwpsecurity-loginprotection' ),
+				__( 'Last Seen', 'openwpsecurity-loginprotection' ),
+			),
+			$rows,
+			__( 'No user-agent campaigns found for this period.', 'openwpsecurity-loginprotection' ),
+			'widefat striped fixed vwfw-user-agent-table',
+			function ( array $row ): void {
+				?>
+				<td class="vwfw-user-agent-cell">
+					<strong><?php echo esc_html( (string) $row['user_agent_fingerprint'] ); ?></strong>
+					<span><?php echo esc_html( (string) $row['user_agent_summary'] ); ?></span>
+					<code><?php echo esc_html( (string) $row['user_agent'] ); ?></code>
+				</td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['attempts'] ) ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['ips'] ) ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['passwords'] ) ); ?></td>
+				<td><?php echo esc_html( number_format_i18n( (int) $row['usernames'] ) ); ?></td>
+				<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['first_seen'] ) ); ?></td>
+				<td><?php echo esc_html( $this->event_report_formatter->admin_datetime( (string) $row['last_seen'] ) ); ?></td>
+				<?php
+			}
+		);
+	}
+
+	private function render_analysis_table( string $title, string $description, array $columns, array $rows, string $empty_message, string $table_class, callable $render_cells ): void {
+		$this->record_table_panel->render(
+			$title,
+			$description,
+			count( $rows ),
+			'',
+			$columns,
+			$rows,
+			$empty_message,
+			$table_class,
+			$render_cells,
+			false
+		);
 	}
 }
